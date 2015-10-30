@@ -3,3 +3,9 @@
 settings/common.py is loaded by default and settings can be overidden by pointing the environment variable
 IDPROOFING_LETTER_SETTINGS on a file.
 
+
+# Secret key
+
+If the user executing the app has write permission to the project directory a file (SECRET) with the key
+will be created on startup. If the user does not have write permission the operator has the choice of creating
+the file manually or set SECRET_KEY in the overriding configuration.

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2015 NORDUnet A/S
 # All rights reserved.
@@ -30,32 +31,77 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
-from flask import Flask
-from flask import request, render_template, jsonify
+from __future__ import absolute_import
 
-from flask_wtf.csrf import CsrfProtect
+from flask import Flask
+from flask import request, render_template, jsonify, url_for
+from flask_wtf.csrf import CsrfProtect, generate_csrf
+
+from idproofing_letter.exceptions import ApiException
+from idproofing_letter.forms import NinForm
+
 
 app = Flask(__name__)
-CsrfProtect(app)
+
 app.config.from_object('settings.common')
 app.config.from_envvar('IDPROOFING_LETTER_SETTINGS', silent=True)
 
+csrf = CsrfProtect(app)
 
 @app.route('/')
 def index():
-    return render_template('index.html', message='eduid-proofing-letter')
+    # A view for developing, should not be exposed in production
+    return render_template('index.html', message='eduid-proofing-letter', form=NinForm())
 
 
-@app.route('/proofing', methods=['GET', 'POST'])
-def proofing():
+@app.route('/get-address', methods=['GET', 'POST'])
+def get_address():
+    form = NinForm()
+
     if request.method == 'POST':
-        app.logger.debug('POST to proofing')
-        # Initiate actual proofing flow
-        pass
+        # TODO: Authenticate user
+        # TODO: Initiate actual proofing flow
+        app.logger.debug('POST to proofing')                # Dev
+        ret = {
+            'endpoint': url_for('confirm', _external=True),
+            'csrf': generate_csrf(),
+            'expected_fields': ''  # Do we want expected_fields?
+        }                                                   # Dev
+        if form.validate_on_submit():
+            # TODO: Lookup official address via Navet and return address for confirmation
+            # TODO: Save a  LetterNinProofingUser to db
+            return jsonify(ret)
+        raise ApiException(form.nin.errors)
     else:
         app.logger.debug('GET to proofing')
-        # Get CSRF and form data or a messages declining to send any more letters
-        pass
+        # TODO: Authenticate user
+        # TODO: Get CSRF and form data or a messages declining to send any more letters
+        ret = {
+            'endpoint': request.url,
+            'expected_fields': form._fields.keys(),  # Do we want expected_fields?
+            'csrf': generate_csrf()
+        }
+
+        return jsonify(ret)
+
+
+@app.route('/send-letter', methods=['POST'])
+def send_letter():
+    # TODO: Authenticate user
+    # TODO: If user accapted the official address and data saved in db checks out, ask {service_provider} to send letter
+    return jsonify({'success': True})
+
+
+@csrf.error_handler
+def csrf_error(reason):
+    raise ApiException(message=reason, status_code=400)
+
+
+@app.errorhandler(ApiException)
+def handle_exception(error):
+    response = jsonify(error.to_dict())
+    response.status_code = error.status_code
+    return response
 
 if __name__ == '__main__':
     app.run(debug=app.config['DEBUG'])

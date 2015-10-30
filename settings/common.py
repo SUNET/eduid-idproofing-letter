@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import
 from os.path import abspath, dirname, join, normpath
 
 __author__ = 'lundberg'
@@ -12,11 +13,11 @@ http://flask.pocoo.org/docs/0.10/config/#builtin-configuration-values
 DEBUG = False
 
 # Absolute filesystem path to the Flask project directory:
-FLASK_ROOT = dirname(abspath(__file__))
+PROJECT_ROOT = dirname(dirname(abspath(__file__)))
 
 # Absolute filesystem path to the secret file which holds this project's
 # SECRET_KEY. Will be auto-generated the first time this file is interpreted.
-SECRET_FILE = normpath(join(FLASK_ROOT, 'SECRET'))
+SECRET_FILE = normpath(join(PROJECT_ROOT, 'SECRET'))
 
 # Try to load the SECRET_KEY from our SECRET_FILE. If that fails, then generate
 # a random SECRET_KEY and save it into our SECRET_FILE for future loading. If
