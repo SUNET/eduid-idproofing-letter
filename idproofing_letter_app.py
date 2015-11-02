@@ -66,7 +66,7 @@ def get_address():
 
     if request.method == 'POST':
         ret = {
-            'endpoint': url_for('confirm', _external=True),
+            'endpoint': url_for('send_letter', _external=True),
             'csrf': generate_csrf(),
             'expected_fields': ''  # Do we want expected_fields?
         }                                                   # Dev
@@ -74,7 +74,7 @@ def get_address():
             # TODO: Lookup official address via Navet and return address for confirmation
             # TODO: Save a  LetterNinProofingUser to proofingdb
             return jsonify(ret)
-        raise ApiException(form.nin.errors)
+        raise ApiException({'errors': form.errors}, status_code=400)
     else:
         # TODO: Get LetterNinProofingUser from proofingdb or None
         # TODO: Return CSRF or a messages declining to send any more letters

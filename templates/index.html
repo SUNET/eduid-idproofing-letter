@@ -6,7 +6,7 @@
 </head>
 <body>
 {{ message }}
-<form method="POST" action="/proofing">
+<form method="POST" action="/get-address">
     {{ form.hidden_tag() }}
     {{ form.nin.label }} {{ form.nin(size=20) }}
     <input type="submit" value="Submit">
