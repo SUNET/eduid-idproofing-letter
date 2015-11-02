@@ -34,11 +34,13 @@
 from __future__ import absolute_import
 
 from flask import Flask
-from flask import request, render_template, jsonify, url_for
+from flask import g, request, render_template, jsonify, url_for
 from flask_wtf.csrf import CsrfProtect, generate_csrf
+from werkzeug.local import LocalProxy
 
 from idproofing_letter.exceptions import ApiException
 from idproofing_letter.forms import NinForm
+from idproofing_letter.database import get_userdb, get_proofingdb
 
 
 app = Flask(__name__)
@@ -47,6 +49,9 @@ app.config.from_object('settings.common')
 app.config.from_envvar('IDPROOFING_LETTER_SETTINGS', silent=True)
 
 csrf = CsrfProtect(app)
+userdb = LocalProxy(get_userdb)
+proofingdb = LocalProxy(get_proofingdb)
+
 
 @app.route('/')
 def index():
@@ -56,12 +61,10 @@ def index():
 
 @app.route('/get-address', methods=['GET', 'POST'])
 def get_address():
+    # TODO: Authenticate user
     form = NinForm()
 
     if request.method == 'POST':
-        # TODO: Authenticate user
-        # TODO: Initiate actual proofing flow
-        app.logger.debug('POST to proofing')                # Dev
         ret = {
             'endpoint': url_for('confirm', _external=True),
             'csrf': generate_csrf(),
@@ -69,13 +72,12 @@ def get_address():
         }                                                   # Dev
         if form.validate_on_submit():
             # TODO: Lookup official address via Navet and return address for confirmation
-            # TODO: Save a  LetterNinProofingUser to db
+            # TODO: Save a  LetterNinProofingUser to proofingdb
             return jsonify(ret)
         raise ApiException(form.nin.errors)
     else:
-        app.logger.debug('GET to proofing')
-        # TODO: Authenticate user
-        # TODO: Get CSRF and form data or a messages declining to send any more letters
+        # TODO: Get LetterNinProofingUser from proofingdb or None
+        # TODO: Return CSRF or a messages declining to send any more letters
         ret = {
             'endpoint': request.url,
             'expected_fields': form._fields.keys(),  # Do we want expected_fields?
@@ -88,7 +90,7 @@ def get_address():
 @app.route('/send-letter', methods=['POST'])
 def send_letter():
     # TODO: Authenticate user
-    # TODO: If user accapted the official address and data saved in db checks out, ask {service_provider} to send letter
+    # TODO: If user accepted the official address and data saved in db checks out, ask {service_provider} to send letter
     return jsonify({'success': True})
 
 
@@ -102,6 +104,16 @@ def handle_exception(error):
     response = jsonify(error.to_dict())
     response.status_code = error.status_code
     return response
+
+
+@app.teardown_appcontext
+def teardown_db(exception):
+    _userdb = getattr(g, '_userdb', None)
+    if _userdb is not None:
+        _userdb.close()
+    _proofingdb = getattr(g, '_proofingdb', None)
+    if _proofingdb is not None:
+        _proofingdb.close()
 
 if __name__ == '__main__':
     app.run(debug=app.config['DEBUG'])

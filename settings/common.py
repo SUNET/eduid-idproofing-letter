@@ -33,3 +33,7 @@ except IOError:
             f.write(SECRET_KEY)
     except IOError:
         raise Exception('Cannot open file `%s` for writing.' % SECRET_FILE)
+
+# Database URIs
+IDPROOFING_MONGO_URI = 'mongodb://'
+USERDB_MONGO_URI = 'mongodb://'
