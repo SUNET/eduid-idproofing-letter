@@ -34,8 +34,7 @@
 from __future__ import absolute_import
 
 from flask import Flask
-from flask import g, request, render_template, jsonify, url_for
-from flask_wtf.csrf import CsrfProtect, generate_csrf
+from flask_wtf.csrf import CsrfProtect
 from werkzeug.local import LocalProxy
 
 from idproofing_letter.exceptions import ApiException
@@ -52,4 +51,5 @@ csrf = CsrfProtect(app)
 userdb = LocalProxy(get_userdb)
 proofingdb = LocalProxy(get_proofingdb)
 
+# views needs to be imported after app init due to circular dependency
 import idproofing_letter.views

@@ -7,8 +7,16 @@
 <body>
 {{ message }}
 <form method="POST" action="/get-address">
-    {{ form.hidden_tag() }}
-    {{ form.nin.label }} {{ form.nin(size=20) }}
+    {{ form1.hidden_tag() }}
+    {{ form1.eppn.label }} {{ form1.eppn(size=12) }}
+    {{ form1.nin.label }} {{ form1.nin(size=10) }}
+    <input type="submit" value="Submit">
+</form>
+<hr>
+<form method="POST" action="/send-letter">
+    {{ form2.hidden_tag() }}
+    {{ form2.eppn.label }} {{ form2.eppn(size=12) }}
+    {{ form2.accepted_address.label }} {{ form2.accepted_address() }}
     <input type="submit" value="Submit">
 </form>
 </body>
