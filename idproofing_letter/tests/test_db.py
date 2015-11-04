@@ -5,7 +5,7 @@ from __future__ import absolute_import
 from copy import deepcopy
 
 from eduid_userdb.testing import MongoTestCase
-from idproofing_letter_app import app, userdb, proofingdb
+from runserver import app, userdb, proofingdb
 
 __author__ = 'lundberg'
 
