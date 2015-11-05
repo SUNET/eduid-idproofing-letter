@@ -37,3 +37,6 @@ except IOError:
 # Database URIs
 IDPROOFING_MONGO_URI = 'mongodb://'
 USERDB_MONGO_URI = 'mongodb://'
+
+# Application specific settings
+LETTER_WAIT_TIME_HOURS = 336  # 2 weeks

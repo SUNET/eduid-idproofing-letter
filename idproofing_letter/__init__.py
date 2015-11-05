@@ -33,7 +33,7 @@
 
 from __future__ import absolute_import
 
-from flask import Flask
+from flask import Flask, jsonify, g
 from flask_wtf.csrf import CsrfProtect
 from werkzeug.local import LocalProxy
 
@@ -48,8 +48,32 @@ app.config.from_object('idproofing_letter.settings.common')
 app.config.from_envvar('IDPROOFING_LETTER_SETTINGS', silent=True)
 
 csrf = CsrfProtect(app)
+
+# TODO fix db initialized for every request...
 userdb = LocalProxy(get_userdb)
 proofingdb = LocalProxy(get_proofingdb)
+
+
+@csrf.error_handler
+def csrf_error(reason):
+    raise ApiException(message=reason, status_code=400)
+
+
+@app.errorhandler(ApiException)
+def handle_exception(error):
+    response = jsonify(error.to_dict())
+    response.status_code = error.status_code
+    return response
+
+
+@app.teardown_appcontext
+def teardown_db(exception):
+    _userdb = getattr(g, '_userdb', None)
+    if _userdb is not None:
+        _userdb.close()
+    _proofingdb = getattr(g, '_proofingdb', None)
+    if _proofingdb is not None:
+        _proofingdb.close()
 
 # views needs to be imported after app init due to circular dependency
 import idproofing_letter.views
