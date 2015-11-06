@@ -9,4 +9,4 @@ DEBUG = True
 IDPROOFING_MONGO_URI = 'mongodb://eduid_idproofing_letter:eduid_idproofing_letter_pw@mongodb.docker/eduid_idproofing_letter'
 USERDB_MONGO_URI = 'mongodb://eduid_idproofing_letter:eduid_idproofing_letter_pw@mongodb.docker/eduid_am'
 
-DEV_EPPN = 'tomos-dizud'
+DEV_EPPN = 'ravuj-tazas'

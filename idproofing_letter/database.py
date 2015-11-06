@@ -2,7 +2,7 @@
 
 from __future__ import absolute_import
 
-from flask import g
+from flask import g, current_app
 from eduid_userdb.userdb import UserDB
 from eduid_userdb.proofing.userdb import LetterNinProofingUserDB
 
@@ -14,9 +14,9 @@ def get_userdb():
     :rtype: UserDB
     """
     from idproofing_letter import app
-    db = getattr(g, '_userdb', None)
+    db = getattr(current_app, '_userdb', None)
     if db is None:
-        db = g._userdb = UserDB(app.config['USERDB_MONGO_URI'], 'eduid_am')
+        db = current_app._userdb = UserDB(app.config['USERDB_MONGO_URI'], 'eduid_am')
         app.logger.warning('userdb initialized')
     return db
 
@@ -27,9 +27,9 @@ def get_proofingdb():
     :rtype: LetterNinProofingUserDB
     """
     from idproofing_letter import app
-    db = getattr(g, '_proofingdb', None)
+    db = getattr(current_app, '_proofingdb', None)
     if db is None:
-        db = g._proofingdb = LetterNinProofingUserDB(app.config['IDPROOFING_MONGO_URI'],
+        db = current_app._proofingdb = LetterNinProofingUserDB(app.config['IDPROOFING_MONGO_URI'],
                                                      'eduid_idproofing_letter')
         app.logger.warning('proofingdb initialized')
     return db
