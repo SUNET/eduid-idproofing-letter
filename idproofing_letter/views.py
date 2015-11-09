@@ -5,15 +5,11 @@ from __future__ import absolute_import
 from flask import request, render_template, jsonify, url_for
 from flask_wtf.csrf import generate_csrf
 
-from datetime import datetime, timedelta
-
-from eduid_userdb.proofing import LetterNinProofingUser
-
-from idproofing_letter import app, userdb, proofingdb
+from idproofing_letter import app, proofingdb
 from idproofing_letter.exceptions import ApiException
 from idproofing_letter.forms import NinForm, AcceptAddressForm, VerifyCodeForm
 from idproofing_letter.authentication import authenticate
-from idproofing_letter.proofing import create_proofing_user, check_user_status
+from idproofing_letter.proofing import create_proofing_state, check_state
 
 
 # Dev mocks
@@ -25,15 +21,16 @@ __author__ = 'lundberg'
 @app.route('/')
 def index():
     # A view for developing, should not be exposed in production
-    return render_template('index.html', message='eduid-proofing-letter', form1=NinForm(), form2=AcceptAddressForm())
+    return render_template('index.html', message='eduid-proofing-letter', form1=NinForm(), form2=AcceptAddressForm(),
+                           form3=VerifyCodeForm())
 
 
 @app.route('/get-address', methods=['GET', 'POST'])
 def get_address():
     user = authenticate(request)
-    proofing_user = proofingdb.get_user_by_id(user.user_id, raise_on_missing=False)
+    proofing_state = proofingdb.get_state_by_user_id(user.user_id, raise_on_missing=False)
     form = NinForm()
-    if not proofing_user:
+    if not proofing_state:
         if form.validate_on_submit():
             nin = form.nin.data
             ret = dict(
@@ -42,15 +39,17 @@ def get_address():
                 expected_fields=AcceptAddressForm()._fields.keys()  # Do we want expected_fields?
             )
             # TODO: Lookup official address via Navet and return address for confirmation
-            ret['official_address'] = celery_mock.get_formatted_address(nin)
+            address = celery_mock.get_postal_address(nin)
+            ret['official_address'] = celery_mock.format_address(address)
             # TODO: Save a LetterNinProofingUser to proofingdb
-            proofing_user = create_proofing_user(user.user_id, nin)
-            proofingdb.save(proofing_user, user_id_attr='user_id')
+            proofing_state = create_proofing_state(user.user_id, nin)
+            proofing_state.proofing_letter.address = address
+            proofingdb.save(proofing_state)
             return jsonify(ret)
         raise ApiException({'errors': form.errors}, status_code=400)
     else:  # If a proofing user is found continue the flow
         # TODO: We probably want to cache this response
-        ret = check_user_status(proofing_user)
+        ret = check_state(proofing_state)
         return jsonify(ret)
 
 
@@ -59,20 +58,23 @@ def send_letter():
     user = authenticate(request)
     form = AcceptAddressForm()
     if form.validate_on_submit():
-        # TODO: If user accepted the official address and data saved in db checks out,
-        proofing_user = proofingdb.get_user_by_id(user.user_id)
-        if not proofing_user.proofing_letter.is_sent:
-            # TODO: Ask {service_provider} to send letter
-            proofing_user.proofing_letter.is_sent = True
-            #proofing_user.proofing_letter.tranaction_id = something
-            proofing_user.proofing_letter.sent_ts = True
-
-            proofingdb.save(proofing_user, user_id_attr='user_id')
-            success = form.accepted_address.data
-            return jsonify({'success': success})
+        if not form.accepted_address.data:
+            raise ApiException({'success': False, 'reason': 'User declined address'}, status_code=200)
+        proofing_state = proofingdb.get_state_by_user_id(user.user_id)
+        if proofing_state.proofing_letter.is_sent:
+            raise ApiException({'success': False, 'reason': 'Letter already sent'}, status_code=200)
+        # TODO: If user accepted the official address and data saved in db checks out
+        # TODO: ask {service_provider} to send letter
+        # TODO: Get success from letter service
+        success = form.accepted_address.data
+        # TODO: Get transaction id from letter service
+        proofing_state.proofing_letter.transaction_id = 'bogus transaction id'
+        proofing_state.proofing_letter.is_sent = True
+        proofing_state.proofing_letter.sent_ts = True
+        proofingdb.save(proofing_state)
+        return jsonify({'success': success})
     else:
         raise ApiException({'errors': form.errors}, status_code=400)
-    raise ApiException({'message': 'Letter already sent.'}, status_code=200)
 
 
 @app.route('/verify-code', methods=['POST'])
@@ -80,11 +82,17 @@ def verify_code():
     user = authenticate(request)
     form = VerifyCodeForm()
     if form.validate_on_submit():
-        proofing_user = proofingdb.get_user_by_id(user.user_id)
-        if form.verification_code.data == proofing_user.nin.verification_code:
-            # TODO: Create a JWT and send required data to a Proofing Assertion Consumer
-            # Remove proofing user
-            proofingdb.remove(proofing_user.to_dict())
+        proofing_state = proofingdb.get_state_by_user_id(user.user_id)
+        if not form.verification_code.data == proofing_state.nin.verification_code:
+            raise ApiException({'success': False, 'reason': 'Verification code does not match'}, status_code=200)
+        proofing_state.nin.verified = True
+        proofing_state.nin.verified_by = 'eduid-idproofing-letter'
+        proofing_state.nin.verified_ts = True
+        # TODO: Create a JWT and send required data to a Proofing Assertion Consumer
+        # Remove proofing user
+        proofingdb.remove_document(proofing_state.to_dict())
         return jsonify({'success': True})
+    else:
+        raise ApiException({'errors': form.errors}, status_code=400)
 
 

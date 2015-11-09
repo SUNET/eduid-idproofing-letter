@@ -20,5 +20,12 @@
     {{ form2.accepted_address.label }} {{ form2.accepted_address() }}
     <input type="submit" value="Submit">
 </form>
+<hr>
+<h3>/verify-code</h3>
+<form method="POST" action="/verify-code">
+    {{ form3.hidden_tag() }}
+    {{ form3.verification_code.label }} {{ form3.verification_code() }}
+    <input type="submit" value="Submit">
+</form>
 </body>
 </html>

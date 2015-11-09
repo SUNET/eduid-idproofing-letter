@@ -15,12 +15,17 @@ def get_postal_address(nin):
         ])
         return result
 
-def get_formatted_address(nin):
-    postal_address = get_postal_address(nin)
+def format_address(address):
+    """
+    :param address: official address
+    :type address: OrderedDict
+    :return: formatted address
+    :rtype: list
+    """
     # TODO: Take GivenNameMarking in to account
     lines = list()
-    lines.append(u'{GivenName} {SurName}'.format(**postal_address.get('Name')))
+    lines.append(u'{GivenName} {SurName}'.format(**address.get('Name')))
     # TODO: Take eventual CareOf and Address1(?) in to account
-    lines.append(u'{}'.format(postal_address.get('OfficialAddress').get('Address2')))
-    lines.append(u'{PostalCode} {City}'.format(**postal_address.get('OfficialAddress')))
+    lines.append(u'{}'.format(address.get('OfficialAddress').get('Address2')))
+    lines.append(u'{PostalCode} {City}'.format(**address.get('OfficialAddress')))
     return lines

@@ -7,58 +7,62 @@ from flask_wtf.csrf import generate_csrf
 
 from datetime import datetime, timedelta
 
-from eduid_userdb.proofing import LetterNinProofingUser
+from eduid_userdb.proofing import LetterProofingState
 
 from idproofing_letter import app, proofingdb
-from idproofing_letter.celery_mock import get_formatted_address
+from idproofing_letter.celery_mock import format_address
 from idproofing_letter.forms import NinForm, AcceptAddressForm, VerifyCodeForm
 from idproofing_letter.utils import get_short_hash
 
 __author__ = 'lundberg'
 
-def check_user_status(user):
+def check_state(state):
     """
-    :param user:  authenticated user
-    :type user:  LetterNinProofingUser
+    :param state:  Users proofing state
+    :type state:  LetterProofingState
     :return: response
     :rtype: dict
     """
     ret = dict()
-    if not user.proofing_letter.is_sent:
+    if not state.proofing_letter.is_sent:
         # Show user official address
         ret.update({
             'endpoint': url_for('send_letter', _external=True),
             'csrf': generate_csrf(),
             'expected_fields': AcceptAddressForm()._fields.keys()  # Do we want expected_fields?
         })
-        # TODO: Lookup official address via Navet and return address for confirmation
-        ret['official_address'] = get_formatted_address(user.nin.number)
-    elif user.proofing_letter.is_sent:
+        # XXX: Should be lookup the address again?
+        ret['official_address'] = format_address(state.proofing_letter.address)
+    elif state.proofing_letter.is_sent:
         # Check how long ago the letter was sent
-        now = datetime.utcnow()
-        sent_dt = user.proofing_letter.sent_ts
-        if now - sent_dt < timedelta(hours=app.config['LETTER_WAIT_TIME_HOURS']):
-            # The user have to wait for the letter to arrive
+        sent_dt = state.proofing_letter.sent_ts
+        now = datetime.now(sent_dt.tzinfo)  # Use tz_info from timezone aware mongodb datetime
+        max_wait = timedelta(minutes=app.config['LETTER_WAIT_TIME_HOURS'])
+
+        time_since_sent = now - sent_dt
+        if time_since_sent < max_wait:
+            # The user has to wait for the letter to arrive
             ret.update({
                 'endpoint': url_for('verify_code', _external=True),
                 'csrf': generate_csrf(),
-                'expected_fields': VerifyCodeForm()._fields.keys()  # Do we want expected_fields?
-                #'wait_time'   # The user has to wait this many days before sending another letter
+                'wait_time': '{!s}'.format(max_wait - time_since_sent),
+                'expected_fields': VerifyCodeForm()._fields.keys(),  # Do we want expected_fields?
             })
         else:
             # If the letter haven't reached the user within the allotted time
             # remove the previous proofing object and restart the proofing flow
-            proofingdb.remove(user.to_dict())
+            proofingdb.remove_document(state.to_dict())
+            app.logger.info('Removed {!s}'.format(state))
             ret.update({
-                'endpoint': url_for('get-address', _external=True),
+                'endpoint': url_for('get_address', _external=True),
                 'expected_fields': NinForm()._fields.keys(),  # Do we want expected_fields?
                 'csrf': generate_csrf()
             })
     return ret
 
 
-def create_proofing_user(user_id, nin):
-    proofing_user = LetterNinProofingUser({
+def create_proofing_state(user_id, nin):
+    proofing_state = LetterProofingState({
         'user_id': user_id,
         'nin': {
             'number': nin,
@@ -68,4 +72,4 @@ def create_proofing_user(user_id, nin):
             'verification_code': get_short_hash()
         }
     })
-    return proofing_user
+    return proofing_state

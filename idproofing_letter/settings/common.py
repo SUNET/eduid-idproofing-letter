@@ -13,7 +13,7 @@ http://flask.pocoo.org/docs/0.10/config/#builtin-configuration-values
 DEBUG = False
 
 # Absolute filesystem path to the Flask project directory:
-PROJECT_ROOT = dirname(dirname(abspath(__file__)))
+PROJECT_ROOT = dirname(dirname(dirname(abspath(__file__))))
 
 # Absolute filesystem path to the secret file which holds this project's
 # SECRET_KEY. Will be auto-generated the first time this file is interpreted.
@@ -39,4 +39,4 @@ IDPROOFING_MONGO_URI = 'mongodb://'
 USERDB_MONGO_URI = 'mongodb://'
 
 # Application specific settings
-LETTER_WAIT_TIME_HOURS = 336  # 2 weeks
+LETTER_WAIT_TIME_HOURS = 1# 336  # 2 weeks
