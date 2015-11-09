@@ -35,12 +35,14 @@ def get_address():
             if form.validate_on_submit():
                 nin = form.nin.data
                 ret = dict(
-                    endpoin=url_for('send_letter', _external=True),
+                    endpoint=url_for('send_letter', _external=True),
                     csrf=generate_csrf(),
                     expected_fields=AcceptAddressForm()._fields.keys()  # Do we want expected_fields?
                 )
                 # TODO: Lookup official address via Navet and return address for confirmation
                 address = celery_mock.get_postal_address(nin)
+                if not address:
+                    raise ApiException('No address found', status_code=400)
                 ret['official_address'] = celery_mock.format_address(address)
                 # TODO: Save a LetterNinProofingUser to proofingdb
                 proofing_state = create_proofing_state(user.user_id, nin)
