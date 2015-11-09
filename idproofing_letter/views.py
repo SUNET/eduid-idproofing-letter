@@ -31,23 +31,32 @@ def get_address():
     proofing_state = proofingdb.get_state_by_user_id(user.user_id, raise_on_missing=False)
     form = NinForm()
     if not proofing_state:
-        if form.validate_on_submit():
-            nin = form.nin.data
-            ret = dict(
-                endpoin=url_for('send_letter', _external=True),
-                csrf=generate_csrf(),
-                expected_fields=AcceptAddressForm()._fields.keys()  # Do we want expected_fields?
-            )
-            # TODO: Lookup official address via Navet and return address for confirmation
-            address = celery_mock.get_postal_address(nin)
-            ret['official_address'] = celery_mock.format_address(address)
-            # TODO: Save a LetterNinProofingUser to proofingdb
-            proofing_state = create_proofing_state(user.user_id, nin)
-            proofing_state.proofing_letter.address = address
-            proofingdb.save(proofing_state)
-            return jsonify(ret)
-        raise ApiException({'errors': form.errors}, status_code=400)
-    else:  # If a proofing user is found continue the flow
+        if request.method == 'POST':
+            if form.validate_on_submit():
+                nin = form.nin.data
+                ret = dict(
+                    endpoin=url_for('send_letter', _external=True),
+                    csrf=generate_csrf(),
+                    expected_fields=AcceptAddressForm()._fields.keys()  # Do we want expected_fields?
+                )
+                # TODO: Lookup official address via Navet and return address for confirmation
+                address = celery_mock.get_postal_address(nin)
+                ret['official_address'] = celery_mock.format_address(address)
+                # TODO: Save a LetterNinProofingUser to proofingdb
+                proofing_state = create_proofing_state(user.user_id, nin)
+                proofing_state.proofing_letter.address = address
+                proofingdb.save(proofing_state)
+                return jsonify(ret)
+            else:
+                raise ApiException({'errors': form.errors}, status_code=400)
+        elif request.method == 'GET':
+            # TODO: We probably want to cache this response
+            return jsonify({
+                'endpoint': url_for('get_address', _external=True),
+                'expected_fields': NinForm()._fields.keys(),  # Do we want expected_fields?
+                'csrf': generate_csrf()
+            })
+    else:  # If a proofing state is found continue the flow
         # TODO: We probably want to cache this response
         ret = check_state(proofing_state)
         return jsonify(ret)
