@@ -11,6 +11,8 @@ __author__ = 'lundberg'
 
 
 # TODO: Get user auth facts from something else than a cookie
+# TODO: Maybe we should use sessions so we don't have to re-auth the user
+# TODO: for each call.
 def authenticate(request):
     """
     :param request: incoming request

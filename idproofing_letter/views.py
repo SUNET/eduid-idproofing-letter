@@ -32,9 +32,7 @@ def index():
 def get_address():
     user = authenticate(request)
     proofing_user = proofingdb.get_user_by_id(user.user_id, raise_on_missing=False)
-
     form = NinForm()
-
     if not proofing_user:
         if form.validate_on_submit():
             nin = form.nin.data
@@ -50,40 +48,43 @@ def get_address():
             proofingdb.save(proofing_user, user_id_attr='user_id')
             return jsonify(ret)
         raise ApiException({'errors': form.errors}, status_code=400)
-    else:  # GET
+    else:  # If a proofing user is found continue the flow
+        # TODO: We probably want to cache this response
         ret = check_user_status(proofing_user)
-        if ret:
-            return jsonify(ret)
-
-
-
         return jsonify(ret)
 
 
 @app.route('/send-letter', methods=['POST'])
 def send_letter():
-    # TODO: Authenticate user
-    user = userdb.get_user_by_eppn(app.config['DEV_EPPN'])
+    user = authenticate(request)
     form = AcceptAddressForm()
     if form.validate_on_submit():
         # TODO: If user accepted the official address and data saved in db checks out,
         proofing_user = proofingdb.get_user_by_id(user.user_id)
-        # TODO: Ask {service_provider} to send letter
-        proofing_user.proofing_letter.is_sent = True
-        proofing_user.proofing_letter.sent_ts = True
-        proofingdb.save(proofing_user, user_id_attr='user_id')
-        success = form.accepted_address.data
+        if not proofing_user.proofing_letter.is_sent:
+            # TODO: Ask {service_provider} to send letter
+            proofing_user.proofing_letter.is_sent = True
+            #proofing_user.proofing_letter.tranaction_id = something
+            proofing_user.proofing_letter.sent_ts = True
+
+            proofingdb.save(proofing_user, user_id_attr='user_id')
+            success = form.accepted_address.data
+            return jsonify({'success': success})
     else:
         raise ApiException({'errors': form.errors}, status_code=400)
-    return jsonify({'success': success})
+    raise ApiException({'message': 'Letter already sent.'}, status_code=200)
 
 
 @app.route('/verify-code', methods=['POST'])
 def verify_code():
-    # TODO: Authenticate user
-    user = userdb.get_user_by_eppn(app.config['DEV_EPPN'])
+    user = authenticate(request)
     form = VerifyCodeForm()
     if form.validate_on_submit():
+        proofing_user = proofingdb.get_user_by_id(user.user_id)
+        if form.verification_code.data == proofing_user.nin.verification_code:
+            # TODO: Create a JWT and send required data to a Proofing Assertion Consumer
+            # Remove proofing user
+            proofingdb.remove(proofing_user.to_dict())
         return jsonify({'success': True})
 
 

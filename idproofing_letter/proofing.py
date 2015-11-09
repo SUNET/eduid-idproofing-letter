@@ -20,8 +20,8 @@ def check_user_status(user):
     """
     :param user:  authenticated user
     :type user:  LetterNinProofingUser
-    :return:
-    :rtype:
+    :return: response
+    :rtype: dict
     """
     ret = dict()
     if not user.proofing_letter.is_sent:
@@ -37,7 +37,7 @@ def check_user_status(user):
         # Check how long ago the letter was sent
         now = datetime.utcnow()
         sent_dt = user.proofing_letter.sent_ts
-        if now - sent_dt < timedelta(weeks=app.config['LETTER_WAIT_TIME_HOURS']):
+        if now - sent_dt < timedelta(hours=app.config['LETTER_WAIT_TIME_HOURS']):
             # The user have to wait for the letter to arrive
             ret.update({
                 'endpoint': url_for('verify_code', _external=True),
