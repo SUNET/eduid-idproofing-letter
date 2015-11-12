@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import
 
 from idproofing_letter import app
 from eduid_msg.celery import celery
 from eduid_msg.tasks import get_postal_address as _get_postal_address
 
 __author__ = 'lundberg'
+
 
 celery.conf.update(app.config['CELERY_CONFIG'])
 
