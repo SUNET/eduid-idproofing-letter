@@ -4,14 +4,18 @@ from __future__ import absolute_import
 
 from copy import deepcopy
 
+from flask import request
+
 from eduid_userdb.testing import MongoTestCase
-from runserver import app, userdb, proofingdb
+from idproofing_letter import app, userdb, proofingdb
+from idproofing_letter.authentication import authenticate
 
 __author__ = 'lundberg'
 
 
 SETTINGS = {
     'TESTING': True,
+    'DEV_EPPN': 'babba-labba',
 }
 
 
@@ -38,7 +42,8 @@ class DbTests(MongoTestCase):
             proofingdb._drop_whole_collection()
             userdb._drop_whole_collection()
 
-    def test_db_init(self):
-        with app.app_context():
-            user = userdb.get_user_by_eppn('babba-labba')
-            self.assertEqual(user.eppn, 'babba-labba')
+    def test_authenticate(self):
+#        with app.app_context():
+        self.testapp
+        user = authenticate(request)
+        self.assertEqual(user.eppn, 'babba-labba')

@@ -39,4 +39,11 @@ IDPROOFING_MONGO_URI = 'mongodb://'
 USERDB_MONGO_URI = 'mongodb://'
 
 # Application specific settings
-LETTER_WAIT_TIME_HOURS = 1# 336  # 2 weeks
+LETTER_WAIT_TIME_HOURS = 336  # 2 weeks
+
+# Celery config
+CELERY_CONFIG = {
+    'BROKER_URL': 'amqp://',
+    'CELERY_RESULT_BACKEND': 'amqp',
+    'CELERY_TASK_SERIALIZER': 'json'
+}
