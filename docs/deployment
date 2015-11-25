@@ -1,6 +1,6 @@
 # Settings
 
-settings/common.py is loaded by default and settings can be overidden by pointing the environment variable
+settings/common.py is loaded by default and settings can be overridden by pointing the environment variable
 IDPROOFING_LETTER_SETTINGS on a file.
 
 

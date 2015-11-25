@@ -34,9 +34,8 @@ def get_postal_address(nin):
                 ]))
             ])
     """
-
-    rtask = _get_postal_address.apply_async(args=[nin])
     try:
+        rtask = _get_postal_address.apply_async(args=[nin])
         rtask.wait()
         if rtask.successful():
             return rtask.get()
