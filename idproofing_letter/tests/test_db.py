@@ -7,7 +7,7 @@ from copy import deepcopy
 from flask import request
 
 from eduid_userdb.testing import MongoTestCase
-from idproofing_letter import app, userdb, proofingdb
+from idproofing_letter import app, db
 from idproofing_letter.authentication import authenticate
 
 __author__ = 'lundberg'
@@ -19,16 +19,15 @@ SETTINGS = {
 }
 
 
-class DbTests(MongoTestCase):
+class AppTests(MongoTestCase):
     """Base TestCase for those tests that need a full environment setup"""
 
     def setUp(self):
-        super(DbTests, self).setUp(None, None, userdb_use_old_format=True)
+        super(AppTests, self).setUp(None, None, userdb_use_old_format=True)
 
         _settings = deepcopy(SETTINGS)
         _settings.update({
-            'IDPROOFING_MONGO_URI': self.tmp_db.get_uri('eduid_idproofing_letter_test'),
-            'USERDB_MONGO_URI': self.tmp_db.get_uri('eduid_am'),
+            'MONGO_URI': self.tmp_db.get_uri(),
             })
         self.settings.update(_settings)
 
@@ -37,13 +36,13 @@ class DbTests(MongoTestCase):
         self.testapp = app.test_client()
 
     def tearDown(self):
-        super(DbTests, self).tearDown()
+        super(AppTests, self).tearDown()
         with app.app_context():
-            proofingdb._drop_whole_collection()
-            userdb._drop_whole_collection()
+            db.letter_proofing_statedb._drop_whole_collection()
+            db.userdb._drop_whole_collection()
 
     def test_authenticate(self):
-#        with app.app_context():
-        self.testapp
-        user = authenticate(request)
-        self.assertEqual(user.eppn, 'babba-labba')
+        with app.test_request_context():
+            self.testapp.get('/get-state')
+            user = authenticate(request)
+            self.assertEqual(user.eppn, SETTINGS['DEV_EPPN'])

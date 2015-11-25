@@ -33,13 +33,12 @@
 
 from __future__ import absolute_import
 
-from flask import Flask, jsonify, g
+from flask import Flask, jsonify
 from flask_wtf.csrf import CsrfProtect
-from werkzeug.local import LocalProxy
+from eduid_common.api.database import ApiDatabase
 
 from idproofing_letter.exceptions import ApiException
 from idproofing_letter.forms import NinForm
-from idproofing_letter.database import get_userdb, get_proofingdb
 
 
 app = Flask(__name__)
@@ -48,10 +47,7 @@ app.config.from_object('idproofing_letter.settings.common')
 app.config.from_envvar('IDPROOFING_LETTER_SETTINGS', silent=True)
 
 csrf = CsrfProtect(app)
-
-# TODO fix db initialized for every request...
-userdb = LocalProxy(get_userdb)
-proofingdb = LocalProxy(get_proofingdb)
+db = ApiDatabase(app)
 
 
 @csrf.error_handler
@@ -66,14 +62,6 @@ def handle_exception(error):
     return response
 
 
-@app.teardown_appcontext
-def teardown_db(exception):
-    _userdb = getattr(g, '_userdb', None)
-    if _userdb is not None:
-        _userdb.close()
-    _proofingdb = getattr(g, '_proofingdb', None)
-    if _proofingdb is not None:
-        _proofingdb.close()
 
 # views needs to be imported after app init due to circular dependency
 import idproofing_letter.views

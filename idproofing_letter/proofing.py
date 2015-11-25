@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 
 from eduid_userdb.proofing import LetterProofingState
 
-from idproofing_letter import app, proofingdb
+from idproofing_letter import app, db
 from idproofing_letter.celery import format_address
 from idproofing_letter.forms import NinForm, AcceptAddressForm, VerifyCodeForm
 from idproofing_letter.utils import get_short_hash
@@ -51,7 +51,7 @@ def check_state(state):
         else:
             # If the letter haven't reached the user within the allotted time
             # remove the previous proofing object and restart the proofing flow
-            proofingdb.remove_document({'user_id': state.user_id})
+            db.proofingdb_letter.remove_document({'user_id': state.user_id})
             app.logger.info('Removed {!s}'.format(state))
             ret.update({
                 'endpoint': url_for('get_address', _external=True),
