@@ -18,8 +18,10 @@ __author__ = 'lundberg'
 @app.route('/')
 def index():
     # A view for developing, should not be exposed in production
-    return render_template('index.html', message='eduid-proofing-letter', form1=NinForm(), form2=AcceptAddressForm(),
-                           form3=VerifyCodeForm())
+    #if app.config['DEBUG']:
+    return render_template('index.html', message='eduid-proofing-letter', form1=NinForm(),
+                           form2=AcceptAddressForm(), form3=VerifyCodeForm())
+    #raise ApiException({'errors': 'Not found'}, status_code=404)
 
 
 @app.route('/get-state', methods=['POST'])

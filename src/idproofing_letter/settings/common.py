@@ -13,7 +13,7 @@ http://flask.pocoo.org/docs/0.10/config/#builtin-configuration-values
 DEBUG = False
 
 # Absolute filesystem path to the Flask project directory:
-PROJECT_ROOT = dirname(dirname(dirname(abspath(__file__))))
+PROJECT_ROOT = dirname(dirname(dirname(dirname(abspath(__file__)))))
 
 # Absolute filesystem path to the secret file which holds this project's
 # SECRET_KEY. Will be auto-generated the first time this file is interpreted.
@@ -49,7 +49,7 @@ CELERY_CONFIG = {
 }
 
 # Logging
-LOG_FILE = join(PROJECT_ROOT, 'logs/idproofing_letter.log')
+LOG_FILE = 'idproofing_letter.log'
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 LOG_LEVEL = 'ERROR'
 LOG_MAX_BYTES = 10000
