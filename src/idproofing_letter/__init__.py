@@ -33,8 +33,6 @@
 
 from __future__ import absolute_import
 
-__import__('pkg_resources').declare_namespace(__name__)
-
 from flask import Flask, jsonify
 from flask_wtf.csrf import CsrfProtect
 from eduid_common.api.database import ApiDatabase
@@ -44,6 +42,8 @@ from idproofing_letter.forms import NinForm
 
 import logging
 from logging.handlers import RotatingFileHandler
+
+__import__('pkg_resources').declare_namespace(__name__)
 
 # Initiate application
 app = Flask(__name__)

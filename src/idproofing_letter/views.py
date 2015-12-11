@@ -18,20 +18,19 @@ __author__ = 'lundberg'
 @app.route('/')
 def index():
     # A view for developing, should not be exposed in production
-    #if app.config['DEBUG']:
-    return render_template('index.html', message='eduid-proofing-letter', form1=NinForm(),
-                           form2=AcceptAddressForm(), form3=VerifyCodeForm())
-    #raise ApiException({'errors': 'Not found'}, status_code=404)
+    if app.config['DEBUG']:
+        return render_template('index.html', message='eduid-proofing-letter', form1=NinForm(),
+                               form2=AcceptAddressForm(), form3=VerifyCodeForm())
+    raise ApiException({'errors': 'Not found'}, status_code=404)
 
 
 @app.route('/get-state', methods=['POST'])
 def get_state():
-    app.logger.info('get-state')
     form = GetState()
     if form.validate_on_submit():
-        app.logger.info(form.eppn.data)
         user = authenticate(form)
         proofing_state = db.letter_proofing_statedb.get_state_by_user_id(user.user_id, raise_on_missing=False)
+        app.logger.info('Getting proofing state for user {!r}'.format(user))
         if proofing_state:
             # If a proofing state is found continue the flow
             return jsonify(check_state(proofing_state))

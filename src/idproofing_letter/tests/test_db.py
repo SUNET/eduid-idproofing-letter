@@ -8,6 +8,7 @@ from flask import request
 
 from eduid_userdb.testing import MongoTestCase
 from idproofing_letter import app, db
+from idproofing_letter.forms import GetState
 from idproofing_letter.authentication import authenticate
 
 __author__ = 'lundberg'
@@ -44,5 +45,7 @@ class AppTests(MongoTestCase):
     def test_authenticate(self):
         with app.test_request_context():
             self.testapp.get('/get-state')
-            user = authenticate(request)
-            self.assertEqual(user.eppn, SETTINGS['DEV_EPPN'])
+            form = GetState()
+            if form.validate_on_submit():
+                user = authenticate(form)
+                self.assertEqual(user.eppn, SETTINGS['DEV_EPPN'])
