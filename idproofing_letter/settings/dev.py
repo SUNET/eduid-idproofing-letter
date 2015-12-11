@@ -14,4 +14,4 @@ CELERY_CONFIG = {
     'CELERY_TASK_SERIALIZER': 'json',
 }
 
-DEV_EPPN = 'pidig-tutiz'
+LOG_LEVEL = 'DEBUG'

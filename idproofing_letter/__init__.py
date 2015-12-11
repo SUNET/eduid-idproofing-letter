@@ -40,6 +40,8 @@ from eduid_common.api.database import ApiDatabase
 from idproofing_letter.exceptions import ApiException
 from idproofing_letter.forms import NinForm
 
+import logging
+from logging.handlers import RotatingFileHandler
 
 app = Flask(__name__)
 
@@ -48,6 +50,13 @@ app.config.from_envvar('IDPROOFING_LETTER_SETTINGS', silent=True)
 
 csrf = CsrfProtect(app)
 db = ApiDatabase(app)
+# Set up logging
+handler = RotatingFileHandler(app.config['LOG_FILE'], maxBytes=app.config['LOG_MAX_BYTES'],
+                              backupCount=app.config['LOG_BACKUP_COUNT'])
+handler.setLevel(app.config['LOG_LEVEL'])
+formatter = logging.Formatter(app.config['LOG_FORMAT'])
+handler.setFormatter(formatter)
+app.logger.addHandler(handler)
 
 
 @csrf.error_handler
