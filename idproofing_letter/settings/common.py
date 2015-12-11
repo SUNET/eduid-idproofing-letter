@@ -54,3 +54,6 @@ LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 LOG_LEVEL = 'ERROR'
 LOG_MAX_BYTES = 10000
 LOG_BACKUP_COUNT = 10
+
+# No CSRF for now
+WTF_CSRF_ENABLED = False

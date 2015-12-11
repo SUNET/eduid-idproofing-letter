@@ -43,13 +43,17 @@ from idproofing_letter.forms import NinForm
 import logging
 from logging.handlers import RotatingFileHandler
 
+# Initiate application
 app = Flask(__name__)
 
+# Load configuration
 app.config.from_object('idproofing_letter.settings.common')
 app.config.from_envvar('IDPROOFING_LETTER_SETTINGS', silent=True)
 
-csrf = CsrfProtect(app)
+# Initiate external modules
 db = ApiDatabase(app)
+csrf = CsrfProtect(app)
+
 # Set up logging
 handler = RotatingFileHandler(app.config['LOG_FILE'], maxBytes=app.config['LOG_MAX_BYTES'],
                               backupCount=app.config['LOG_BACKUP_COUNT'])
@@ -71,6 +75,7 @@ def handle_exception(error):
     return response
 
 
-
 # views needs to be imported after app init due to circular dependency
 import idproofing_letter.views
+
+app.logger.info('Application started')
