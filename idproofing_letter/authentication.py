@@ -13,17 +13,18 @@ __author__ = 'lundberg'
 # TODO: Get user auth info from something else than a cookie
 # TODO: Maybe we should use sessions so we don't have to re-auth the user
 # TODO: for each call.
-def authenticate(request):
+def authenticate(form):
     """
-    :param request: incoming request
-    :type request: flask.request
+    :param form:
+    :type form: flask_wtf.form.Form
     :return: authenticated users of False
     :rtype: eduid_userdb.user.User
     """
-    eppn = request.cookies.get('eppn', None)
-    # TODO: Remove dev workaround
+    eppn = form.eppn.data
+    app.logger.info('Trying to authenticate user {!s}'.format(eppn))
+
     if not eppn:
-        eppn = app.config['DEV_EPPN']
+        app.logger.error('No eppn provided. No user to authenticate.')
 
     # Get user from central database
     try:
