@@ -17,6 +17,7 @@ __author__ = 'lundberg'
 SETTINGS = {
     'TESTING': True,
     'DEV_EPPN': 'babba-labba',
+    'SECRET_KEY': 'testing'
 }
 
 

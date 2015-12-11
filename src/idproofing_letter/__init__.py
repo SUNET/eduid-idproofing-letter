@@ -57,12 +57,20 @@ db = ApiDatabase(app)
 csrf = CsrfProtect(app)
 
 # Set up logging
-handler = RotatingFileHandler(app.config['LOG_FILE'], maxBytes=app.config['LOG_MAX_BYTES'],
-                              backupCount=app.config['LOG_BACKUP_COUNT'])
-handler.setLevel(app.config['LOG_LEVEL'])
-formatter = logging.Formatter(app.config['LOG_FORMAT'])
-handler.setFormatter(formatter)
-app.logger.addHandler(handler)
+try:
+    handler = RotatingFileHandler(app.config['LOG_FILE'], maxBytes=app.config['LOG_MAX_BYTES'],
+                                  backupCount=app.config['LOG_BACKUP_COUNT'])
+    handler.setLevel(app.config['LOG_LEVEL'])
+    formatter = logging.Formatter(app.config['LOG_FORMAT'])
+    handler.setFormatter(formatter)
+    app.logger.addHandler(handler)
+except AttributeError:
+    app.logger.info('Logging not set up')
+    app.logger.info('Missing LOG_FILE in the settings file')
+
+# Check for secret key
+if app.config['SECRET_KEY'] is None:
+    app.logger.error('Missing SECRET_KEY in the settings file')
 
 
 @csrf.error_handler

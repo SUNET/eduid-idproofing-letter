@@ -17,3 +17,13 @@ class ApiException(Exception):
         rv = dict(self.payload or ())
         rv['message'] = self.message
         return rv
+
+
+class BadConfiguration(Exception):
+
+    def __init__(self, message):
+        Exception.__init__(self)
+        self.value = message
+
+    def __str__(self):
+        return self.value
