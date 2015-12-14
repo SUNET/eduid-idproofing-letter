@@ -38,5 +38,11 @@ CELERY_CONFIG = {
     'CELERY_TASK_SERIALIZER': 'json',
 }
 
+EKOPOST_API_URI = 'http://api.sandbox.ekopost.se'
+EKOPOST_API_VERIFY_SSL = 'false'
+EKOPOST_API_USER = ''
+EKOPOST_API_PW = ''
+EKOPOST_DEBUG_PDF = join(PROJECT_ROOT, 'pdfs/letter.pdf')
+
 LOG_FILE = join(PROJECT_ROOT, 'logs/idproofing_letter.log')
 LOG_LEVEL = 'DEBUG'

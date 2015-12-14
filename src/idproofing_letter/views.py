@@ -83,6 +83,9 @@ def get_address():
 
 @app.route('/send-letter', methods=['POST'])
 def send_letter():
+    from idproofing_letter.ekopost import Ekopost
+    from idproofing_letter import pdf
+
     form = AcceptAddressForm()
     if form.validate_on_submit():
         user = authenticate(form)
@@ -94,10 +97,24 @@ def send_letter():
         if proofing_state.proofing_letter.is_sent:
             app.logger.info('User {!r} has already sent a letter'.format(user))
             raise ApiException({'success': False, 'reason': 'Letter already sent'}, status_code=200)
+
         # User accepted the official address and data saved in db checks out
-        # TODO: ask {service_provider} to send letter
-        # TODO: Get result and transaction id from letter service
-        proofing_state.proofing_letter.transaction_id = 'bogus transaction id'
+        # and therefore we can now create the letter as a PDF-document and send it.
+        if app.config.get("EKOPOST_DEBUG_PDF", None):
+            pdf.create_pdf(proofing_state.proofing_letter.address,
+                           proofing_state.nin.verification_code)
+            campaign_id = 'debug mode transaction id'
+        else:
+            pdf_letter = pdf.create_pdf(proofing_state.proofing_letter.address,
+                                        proofing_state.nin.verification_code)
+            try:
+                ekopost = Ekopost()
+                campaign_id = ekopost.send(user.eppn, pdf_letter)
+            except ApiException as api_exception:
+                app.logger.error('ApiException {!r}'.format(api_exception.message))
+                raise api_exception
+
+        proofing_state.proofing_letter.transaction_id = campaign_id
         proofing_state.proofing_letter.is_sent = True
         proofing_state.proofing_letter.sent_ts = True
         db.letter_proofing_statedb.save(proofing_state)
