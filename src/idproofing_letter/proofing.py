@@ -45,9 +45,11 @@ def check_state(state):
             ret.update({
                 'endpoint': url_for('verify_code', _external=True),
                 'csrf': generate_csrf(),
-                'wait_time': '{!s}'.format(max_wait - time_since_sent),
+                'letter_sent': '{!s}'.format(sent_dt),
+                'letter_expires': '{!s}'.format(sent_dt + max_wait),
                 'expected_fields': VerifyCodeForm()._fields.keys(),  # Do we want expected_fields?
             })
+            ret['official_address'] = format_address(state.proofing_letter.address)
         else:
             # If the letter haven't reached the user within the allotted time
             # remove the previous proofing object and restart the proofing flow
