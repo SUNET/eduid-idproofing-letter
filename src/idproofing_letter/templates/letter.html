@@ -2,42 +2,59 @@
 <head>
     <style>
         @page {
-            /* Correct usage according to doc but pisa complains anyway */
+            /* Correct usage according to example in the doc but pisa complains anyway */
             size: a4 portrait;
-        @frame header_frame {
-            -pdf-frame-content: header_content;
-            /* -pdf-frame-border: 1; for debugging the layout */
-            left: 17mm; width: 67mm; top: 15mm; height: 17mm;
-        }
-        @frame recipient_frame {
-            /* -pdf-frame-border: 1; for debugging the layout */
-            left: 121mm; width: 77mm; top: 44mm; height: 20.5mm;
-        }
-        @frame text_frame {
-            left: 40mm; width: 120mm; top: 90mm; height: 90mm;
-        }
-
-        /* TODO: The font size is not applied */
-        p.address { font-size: 14pt }
-        p.message { font-size: 18pt }
+            @frame header_frame {
+                -pdf-frame-content: header_content;
+                /* -pdf-frame-border: 1; for debugging the layout */
+                left: 17mm; width: 67mm; top: 15mm; height: 17mm;
+            }
+            @frame recipient_frame {
+                /* -pdf-frame-border: 1; for debugging the layout */
+                left: 121mm; width: 77mm; top: 44mm; height: 20.5mm;
+            }
+            @frame text_frame {
+                left: 30mm; width: 150mm; top: 90mm; height: 180mm;
+            }
         }
     </style>
 </head>
 <body>
     <div id="header_content">
-        <p class="address">SUNET
-            <br>Tulegatan 11 3tr
-            <br>113 53 Stockholm
-        <p>
-    </div>
-    <div id="recipient_frame">
-        <p class="address">{{ recipient_name }}
-            <br>{{ recipient_address }}
-            <br>{{ recipient_postal_code }}
+        <p style="font-size: 10pt">SUNET<br>
+            Tulegatan 11 3tr<br>
+            113 53 Stockholm<br>
         </p>
     </div>
-    <div id="text_frame"><p class="message">Välkommen att bekräfta ditt konto hos eduID,
-        <br>vänligen ange den här koden i eduID Dashboard på adressen https://dashboard.eduid.se
-        som på din begäran skickats till din folkbokföringsadress: {{ code }}</p></div>
+    <div id="recipient_frame">
+        <p style="font-size: 10pt">{{ recipient_name }}<br>
+            {{ recipient_address }}<br>
+            {{ recipient_postal_code }}<br>
+        </p>
+    </div>
+    <div id="text_frame">
+        <p style="font-size: 12pt"><b>Välkommen att bekräfta ditt eduID konto</b><br>
+            För att bekräfta ditt konto med den begärda koden: <strong>{{ code }}</strong>
+            var vänlig logga in med ditt personliga konto i eduID Dashboard på adressen https://dashboard.eduid.se och följ instruktionerna nedan:<br>
+            1. Öppna fliken "Bekräfta identitet".<br>
+            2. Klicka på länken "BEKRÄFTA MED BREV" bredvid ditt personnummer.<br>
+            3. Skriv in den kod du har fått i rutan där det står "Bekräftelsekod".<br>
+            4. Klicka på "OK".<br>
+            5. Klicka på "KLAR" för att slutföra och stänga fönstret.<br>
+            <br>
+            Om du mot förmodan inte har begärt en kod från eduID, var vänlig rapportera detta till support@eduid.se.
+            <br>
+        </p>
+    <p style="font-size: 12pt"><b>Welcome to confirm your eduID account</b><br>
+        To verify your account with the requested code: <strong>{{ code }}</strong>
+        please log in to your personal account at eduID Dashboard by opening the address https://dashboard.eduid.se and follow the instructions below:<br>
+        1. Open the tab "Confirm Identity".<br>
+        2. Click on "CONFIRM WITH LETTER" next to your national identity number.<br>
+        3. Enter the code you received in the box where it says "Confirmation code".<br>
+        4. Click on "OK".<br>
+        5. Click "FINISH" to complete the process and close the window.<br>
+        <br>
+        If you, on the contrary, have not requested a code from eduID, please report it to support@eduid.se.
+    </p></div>
 </body>
 </html>
