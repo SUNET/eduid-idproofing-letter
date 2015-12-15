@@ -10,6 +10,7 @@ requires = [
         'Flask==0.10.1',
         'Flask-WTF==0.12',
         'gunicorn==19.4.1',
+        'xhtml2pdf==0.0.6',
 ]
 
 test_requires = []
