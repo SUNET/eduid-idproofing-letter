@@ -1,2 +1,2 @@
 include *.rst *.cfg *.txt *.md
-recursive-include idproofing_letter *.html
+recursive-include src/idproofing_letter/templates *.html
