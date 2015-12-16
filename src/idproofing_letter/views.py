@@ -5,7 +5,7 @@ from __future__ import absolute_import
 from flask import request, render_template, jsonify, url_for
 from flask_wtf.csrf import generate_csrf
 
-from idproofing_letter import app, db
+from idproofing_letter import app, db, ekopost, pdf
 from idproofing_letter.exceptions import ApiException
 from idproofing_letter.forms import NinForm, AcceptAddressForm, VerifyCodeForm, GetState
 from idproofing_letter.authentication import authenticate
@@ -83,9 +83,6 @@ def get_address():
 
 @app.route('/send-letter', methods=['POST'])
 def send_letter():
-    from idproofing_letter.ekopost import Ekopost
-    from idproofing_letter import pdf
-
     form = AcceptAddressForm()
     if form.validate_on_submit():
         user = authenticate(form)
@@ -108,7 +105,6 @@ def send_letter():
             pdf_letter = pdf.create_pdf(proofing_state.proofing_letter.address,
                                         proofing_state.nin.verification_code)
             try:
-                ekopost = Ekopost()
                 campaign_id = ekopost.send(user.eppn, pdf_letter)
             except ApiException as api_exception:
                 app.logger.error('ApiException {!r}'.format(api_exception.message))

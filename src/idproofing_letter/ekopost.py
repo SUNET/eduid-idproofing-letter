@@ -3,7 +3,6 @@ import json
 import base64
 from datetime import datetime
 from hammock import Hammock
-from idproofing_letter import app
 from idproofing_letter.exceptions import ApiException
 
 __author__ = 'john'
@@ -13,15 +12,18 @@ class Ekopost(object):
 
     _ekopost_api = None
 
+    def __init__(self, app):
+        self.app = app
+
     @property
     def ekopost_api(self):
         if self._ekopost_api is None:
             verify_ssl = True
             auth = None
-            if app.config.get("EKOPOST_API_VERIFY_SSL", None) == 'false':
+            if self.app.config.get("EKOPOST_API_VERIFY_SSL", None) == 'false':
                 verify_ssl = False
-            if app.config.get("EKOPOST_API_USER", None) and app.config.get("EKOPOST_API_PW"):
-                auth = (app.config.get("EKOPOST_API_USER"), app.config.get("EKOPOST_API_PW"))
+            if self.app.config.get("EKOPOST_API_USER", None) and self.app.config.get("EKOPOST_API_PW"):
+                auth = (self.app.config.get("EKOPOST_API_USER"), self.app.config.get("EKOPOST_API_PW"))
             self._ekopost_api = Hammock(app.config.get("EKOPOST_API_URI"), auth=auth, verify=verify_ssl)
         return self._ekopost_api
 
@@ -51,7 +53,7 @@ class Ekopost(object):
 
         # Include the PDF-document to send
         self._create_content(campaign['id'], envelope['id'],
-                            document_in_base64, original_document_size)
+                             document_in_base64, original_document_size)
 
         # To mark the letter as ready to be printed and sent:
         # 1. Close the envelope belonging to the campaign.

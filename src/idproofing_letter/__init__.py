@@ -39,6 +39,7 @@ from eduid_common.api.database import ApiDatabase
 
 from idproofing_letter.exceptions import ApiException
 from idproofing_letter.forms import NinForm
+from idproofing_letter.ekopost import Ekopost
 
 import logging
 from logging.handlers import RotatingFileHandler
@@ -55,6 +56,7 @@ app.config.from_envvar('IDPROOFING_LETTER_SETTINGS', silent=True)
 # Initiate external modules
 db = ApiDatabase(app)
 csrf = CsrfProtect(app)
+ekopost = Ekopost(app)
 
 # Set up logging
 try:
