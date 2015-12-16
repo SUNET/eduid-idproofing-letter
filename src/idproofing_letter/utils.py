@@ -10,8 +10,10 @@ if PY3:  # pragma: no cover
 else:  # pragma: no cover
     text_type = unicode
 
+
 def get_unique_hash():
     return text_type(uuid4())
+
 
 def get_short_hash(entropy=10):
     return uuid4().hex[:entropy]
