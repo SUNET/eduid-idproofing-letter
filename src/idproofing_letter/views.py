@@ -10,7 +10,7 @@ from idproofing_letter.exceptions import ApiException
 from idproofing_letter.forms import NinForm, VerifyCodeForm, GetState
 from idproofing_letter.authentication import authenticate
 from idproofing_letter.proofing import create_proofing_state, check_state
-from idproofing_letter.celery import get_postal_address, format_address
+from idproofing_letter.celery import get_postal_address
 
 __author__ = 'lundberg'
 
@@ -122,11 +122,12 @@ def verify_code():
         proofing_state.nin.verified_ts = True
         # TODO: Create a JWT and send required data to a Proofing Assertion Consumer
         app.logger.info('Verified code for user {!r}'.format(user))
-        # Remove proofing user
-        db.letter_proofing_statedb.remove_document({'user_id': proofing_state.user_id})
         data = proofing_state.nin.to_dict()
         data['official_address'] = proofing_state.proofing_letter.address
+        data['transaction_id'] = proofing_state.proofing_letter.transaction_id
         ret = {'success': True, 'data': data}
+        # Remove proofing user
+        db.letter_proofing_statedb.remove_document({'user_id': proofing_state.user_id})
         return jsonify(ret)
     else:
         app.logger.error('ApiException {!r}'.format(form.errors))
