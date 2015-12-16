@@ -40,8 +40,8 @@ def check_state(state):
             ret.update({
                 'endpoint': url_for('verify_code', _external=True),
                 'csrf': generate_csrf(),
-                'letter_sent': '{!s}'.format(sent_dt),
-                'letter_expires': '{!s}'.format(sent_dt + max_wait),
+                'letter_sent': sent_dt,
+                'letter_expires': sent_dt + max_wait,
                 'expected_fields': VerifyCodeForm()._fields.keys(),  # Do we want expected_fields?
             })
         else:

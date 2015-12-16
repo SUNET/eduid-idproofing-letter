@@ -36,6 +36,7 @@ from __future__ import absolute_import
 from flask import Flask, jsonify
 from flask_wtf.csrf import CsrfProtect
 from eduid_common.api.database import ApiDatabase
+from eduid_common.api.json_encoder import EduidJSONEncoder
 
 from idproofing_letter.exceptions import ApiException
 from idproofing_letter.forms import NinForm
@@ -48,6 +49,9 @@ __import__('pkg_resources').declare_namespace(__name__)
 
 # Initiate application
 app = Flask(__name__)
+
+# Setup JSON encoding
+app.json_encoder = EduidJSONEncoder
 
 # Load configuration
 app.config.from_object('idproofing_letter.settings.common')
