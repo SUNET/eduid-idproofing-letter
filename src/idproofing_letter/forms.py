@@ -21,12 +21,6 @@ class NinForm(Form):
     nin = StringField(u'nin', validators=[regexp(nin_re, message="nin needs to be formatted as 18|19|20yymmddxxxx")])
 
 
-class AcceptAddressForm(Form):
-
-    eppn = StringField(u'eppn', validators=[required()])
-    accepted_address = BooleanField(u'accepted_address', validators=[required()])
-
-
 class VerifyCodeForm(Form):
 
     eppn = StringField(u'eppn', validators=[required()])

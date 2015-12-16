@@ -4,14 +4,11 @@ from __future__ import absolute_import
 
 from flask import url_for
 from flask_wtf.csrf import generate_csrf
-
 from datetime import datetime, timedelta
 
 from eduid_userdb.proofing import LetterProofingState
-
 from idproofing_letter import app, db
-from idproofing_letter.celery import format_address
-from idproofing_letter.forms import NinForm, AcceptAddressForm, VerifyCodeForm
+from idproofing_letter.forms import NinForm, VerifyCodeForm
 from idproofing_letter.utils import get_short_hash
 
 __author__ = 'lundberg'
@@ -25,14 +22,12 @@ def check_state(state):
     """
     ret = dict()
     if not state.proofing_letter.is_sent:
-        # Show user official address
+        # User needs to accept sending a letter
         ret.update({
             'endpoint': url_for('send_letter', _external=True),
             'csrf': generate_csrf(),
-            'expected_fields': AcceptAddressForm()._fields.keys()  # Do we want expected_fields?
+            'expected_fields': NinForm()._fields.keys()  # Do we want expected_fields?
         })
-        # XXX: Should we lookup the address again?
-        ret['official_address'] = format_address(state.proofing_letter.address)
     elif state.proofing_letter.is_sent:
         # Check how long ago the letter was sent
         sent_dt = state.proofing_letter.sent_ts
@@ -49,14 +44,13 @@ def check_state(state):
                 'letter_expires': '{!s}'.format(sent_dt + max_wait),
                 'expected_fields': VerifyCodeForm()._fields.keys(),  # Do we want expected_fields?
             })
-            ret['official_address'] = format_address(state.proofing_letter.address)
         else:
             # If the letter haven't reached the user within the allotted time
             # remove the previous proofing object and restart the proofing flow
             db.proofingdb_letter.remove_document({'user_id': state.user_id})
             app.logger.info('Removed {!s}'.format(state))
             ret.update({
-                'endpoint': url_for('get_address', _external=True),
+                'endpoint': url_for('send_letter', _external=True),
                 'expected_fields': NinForm()._fields.keys(),  # Do we want expected_fields?
                 'csrf': generate_csrf()
             })
