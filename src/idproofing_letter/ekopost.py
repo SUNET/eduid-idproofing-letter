@@ -24,7 +24,7 @@ class Ekopost(object):
                 verify_ssl = False
             if self.app.config.get("EKOPOST_API_USER", None) and self.app.config.get("EKOPOST_API_PW"):
                 auth = (self.app.config.get("EKOPOST_API_USER"), self.app.config.get("EKOPOST_API_PW"))
-            self._ekopost_api = Hammock(app.config.get("EKOPOST_API_URI"), auth=auth, verify=verify_ssl)
+            self._ekopost_api = Hammock(self.app.config.get("EKOPOST_API_URI"), auth=auth, verify=verify_ssl)
         return self._ekopost_api
 
 
