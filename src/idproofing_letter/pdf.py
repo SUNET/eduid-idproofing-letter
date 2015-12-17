@@ -3,6 +3,28 @@ from StringIO import StringIO
 from idproofing_letter import app
 
 
+def format_address(recipient):
+    """
+    :param recipient: official address
+    :type recipient: OrderedDict
+    :return: name, address, postal code
+    :rtype: tuple
+    """
+    try:
+        # TODO: Take GivenNameMarking in to account
+        given_name = recipient.get('Name')['GivenName']               # Mandatory
+        middle_name = recipient.get('Name').get('MiddleName', '')     # Optional
+        surname = recipient.get('Name')['Surname']                    # Mandatory
+        name = u'{!s} {!s} {!s}'.format(given_name, middle_name, surname)
+        # TODO: Take eventual CareOf and Address1(?) in to account
+        address = recipient.get('OfficialAddress').get('Address2')
+        postal_code = u'{PostalCode} {City}'.format(**recipient.get('OfficialAddress'))
+        return name, address, postal_code
+    except KeyError as e:
+        app.logger.error('Postal address formatting failed: {!r}'.format(e))
+        raise e
+
+
 def create_pdf(recipient, verification_code):
     """
     Create a letter in the form of a PDF-document,
@@ -17,9 +39,11 @@ def create_pdf(recipient, verification_code):
 
     pisa.showLogging()
 
-    name = u'{GivenName} {SurName}'.format(**recipient.get('Name'))
-    address = u'{}'.format(recipient.get('OfficialAddress').get('Address2'))
-    postal_code = u'{PostalCode} {City}'.format(**recipient.get('OfficialAddress'))
+    #name = u'{GivenName} {SurName}'.format(**recipient.get('Name'))
+    #address = u'{}'.format(recipient.get('OfficialAddress').get('Address2'))
+    #postal_code = u'{PostalCode} {City}'.format(**recipient.get('OfficialAddress'))
+
+    name, address, postal_code = format_address(recipient)
 
     letter_template = render_template('letter.html',
                                       recipient_name=name,
