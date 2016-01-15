@@ -47,7 +47,7 @@ def check_state(state):
         else:
             # If the letter haven't reached the user within the allotted time
             # remove the previous proofing object and restart the proofing flow
-            db.proofingdb_letter.remove_document({'user_id': state.user_id})
+            db.letter_proofing_statedb.remove_document({'user_id': state.user_id})
             app.logger.info('Removed {!s}'.format(state))
             ret.update({
                 'endpoint': url_for('send_letter', _external=True),
