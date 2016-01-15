@@ -1,5 +1,6 @@
 from xhtml2pdf import pisa
 from StringIO import StringIO
+from idproofing_letter.exceptions import ApiException
 from idproofing_letter import app
 
 
@@ -20,9 +21,9 @@ def format_address(recipient):
         address = recipient.get('OfficialAddress').get('Address2')
         postal_code = u'{PostalCode} {City}'.format(**recipient.get('OfficialAddress'))
         return name, address, postal_code
-    except KeyError as e:
+    except (KeyError, TypeError, AttributeError) as e:
         app.logger.error('Postal address formatting failed: {!r}'.format(e))
-        raise e
+        raise ApiException({'errors': 'Postal address formatting failed: {!r}'.format(e)}, status_code=500)
 
 
 def create_pdf(recipient, verification_code):
