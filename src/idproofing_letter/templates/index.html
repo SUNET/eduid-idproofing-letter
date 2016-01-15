@@ -15,13 +15,11 @@
     <input type="submit" value="Submit">
 </form>
 <hr>
-
-<hr>
 <h3>/verify-code</h3>
 <form method="POST" action="/verify-code">
     {{ form2.hidden_tag() }}
     {{ form2.eppn.label }} {{ form2.eppn(size=10) }}
-    {{ form2.verification_code.label }} {{ form3.verification_code() }}
+    {{ form2.verification_code.label }} {{ form2.verification_code() }}
     <input type="submit" value="Submit">
 </form>
 </body>
