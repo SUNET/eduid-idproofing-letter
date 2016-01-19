@@ -11,9 +11,10 @@
             }
             @frame recipient_frame {
                 /* -pdf-frame-border: 1; for debugging the layout */
-                left: 121mm; width: 77mm; top: 44mm; height: 20.5mm;
+                left: 115mm; width: 86mm; top: 38mm; height: 33mm;
             }
             @frame text_frame {
+                /* -pdf-frame-border: 1; for debugging the layout */
                 left: 30mm; width: 150mm; top: 90mm; height: 180mm;
             }
         }
@@ -27,32 +28,33 @@
         </p>
     </div>
     <div id="recipient_frame">
-        <p style="font-size: 10pt">{{ recipient_name }}<br>
+        <p style="font-size: 10pt">
+            {{ recipient_name }}<br>
             {{ recipient_address }}<br>
-            {{ recipient_postal_code }}<br>
+            {{ recipient_postal_code }} {{ recipient_city }}<br>
         </p>
     </div>
     <div id="text_frame">
         <p style="font-size: 12pt"><b>Välkommen att bekräfta ditt eduID-konto</b><br>
             Din bekräftelsekod är: <strong>{{ code }}</strong><br>
-            Var vänlig logga in med ditt personliga konto i eduID Dashboard på adressen https://dashboard.eduid.se och följ instruktionerna nedan:<br>
+            Var vänlig logga in på https://dashboard.eduid.se med det användarnamn och
+            lösenord som du använde när du skapade ditt konto och följ instruktionerna nedan:<br>
             1. Öppna fliken "Bekräfta identitet".<br>
-            2. Klicka på länken "BEKRÄFTA MED BREV" bredvid ditt personnummer.<br>
-            3. Skriv in bekräftelsekoden i rutan där det står "Bekräftelsekod".<br>
+            2. Klicka på "BEKRÄFTA MED BREV" bredvid ditt personnummer.<br>
+            3. Skriv in bekräftelsekoden i det vita fältet i rutan som öppnas.<br>
             4. Klicka på "OK".<br>
-            5. Klicka på "KLAR" för att slutföra och stänga fönstret.<br>
             <br>
             Om du mot förmodan inte har begärt en kod från eduID, var vänlig rapportera detta till support@eduid.se.
             <br>
         </p>
     <p style="font-size: 12pt"><b>Welcome to confirm your eduID account</b><br>
         Your confirmation code is: <strong>{{ code }}</strong><br>
-        Please log in to your personal account at eduID Dashboard by opening the address https://dashboard.eduid.se and follow the instructions below:<br>
+        Please log in to https://dashboard.eduid.se with the username and password that you used
+        when creating your account and follow the instructions below:<br>
         1. Open the tab "Confirm Identity".<br>
         2. Click on "CONFIRM WITH LETTER" next to your national identity number.<br>
-        3. Enter the confirmation code in the box where it says "Confirmation code".<br>
-        4. Click on "OK".<br>
-        5. Click "FINISH" to complete the process and close the window.<br>
+        3. Enter the confirmation code in the white field of the window that opens.<br>
+        4. Click "OK".<br>
         <br>
         If you, on the contrary, have not requested a code from eduID, please report it to support@eduid.se.
     </p></div>

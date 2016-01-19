@@ -19,8 +19,9 @@ def format_address(recipient):
         name = u'{!s} {!s} {!s}'.format(given_name, middle_name, surname)
         # TODO: Take eventual CareOf and Address1(?) in to account
         address = recipient.get('OfficialAddress').get('Address2')
-        postal_code = u'{PostalCode} {City}'.format(**recipient.get('OfficialAddress'))
-        return name, address, postal_code
+        postal_code = recipient.get('OfficialAddress').get('PostalCode')
+        city = recipient.get('OfficialAddress').get('City')
+        return name, address, postal_code, city
     except (KeyError, TypeError, AttributeError) as e:
         app.logger.error('Postal address formatting failed: {!r}'.format(e))
         raise ApiException({'errors': 'Postal address formatting failed: {!r}'.format(e)}, status_code=500)
@@ -40,16 +41,13 @@ def create_pdf(recipient, verification_code):
 
     pisa.showLogging()
 
-    #name = u'{GivenName} {SurName}'.format(**recipient.get('Name'))
-    #address = u'{}'.format(recipient.get('OfficialAddress').get('Address2'))
-    #postal_code = u'{PostalCode} {City}'.format(**recipient.get('OfficialAddress'))
-
-    name, address, postal_code = format_address(recipient)
+    name, address, postal_code, city = format_address(recipient)
 
     letter_template = render_template('letter.html',
                                       recipient_name=name,
                                       recipient_address=address,
                                       recipient_postal_code=postal_code,
+                                      recipient_city=city,
                                       code=verification_code)
 
     if app.config.get("EKOPOST_DEBUG_PDF", None):
