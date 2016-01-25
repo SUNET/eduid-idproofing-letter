@@ -35,10 +35,11 @@ class FormatAddressTest(unittest.TestCase):
             ])
         ]
         for response in navet_responses:
-            name, address, postal_code = format_address(response)
+            name, address, postal_code, city = format_address(response)
             self.assertIsNotNone(name)
             self.assertIsNotNone(address)
             self.assertIsNotNone(postal_code)
+            self.assertIsNotNone(city)
 
     def test_failing_format(self):
 
