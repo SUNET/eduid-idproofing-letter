@@ -5,7 +5,7 @@ from __future__ import absolute_import
 import unittest
 from collections import OrderedDict
 from idproofing_letter.pdf import format_address
-from idproofing_letter.exceptions import ApiException
+from eduid_common.api.exceptions import ApiException
 
 # We need to add Navet responses that we fail to handle
 

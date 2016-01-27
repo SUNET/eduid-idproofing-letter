@@ -5,7 +5,7 @@ from __future__ import absolute_import
 from eduid_userdb.exceptions import UserDoesNotExist, MultipleUsersReturned
 
 from idproofing_letter import app, db
-from idproofing_letter.exceptions import ApiException
+from eduid_common.api.exceptions import ApiException
 
 __author__ = 'lundberg'
 

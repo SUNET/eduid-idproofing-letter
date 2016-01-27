@@ -6,7 +6,7 @@ from flask import request, render_template, jsonify, url_for
 from flask_wtf.csrf import generate_csrf
 
 from idproofing_letter import app, db, ekopost, pdf
-from idproofing_letter.exceptions import ApiException
+from eduid_common.api.exceptions import ApiException
 from idproofing_letter.forms import NinForm, VerifyCodeForm, GetState
 from idproofing_letter.authentication import authenticate
 from idproofing_letter.proofing import create_proofing_state, check_state
@@ -20,7 +20,7 @@ def index():
     # A view for developing, should not be exposed in production
     if app.config['DEBUG']:
         return render_template('index.html', message='eduid-proofing-letter', form1=NinForm(), form2=VerifyCodeForm())
-    raise ApiException({'errors': 'Not found'}, status_code=404)
+    raise ApiException('Not found', status_code=404)
 
 
 @app.route('/get-state', methods=['POST'])
@@ -40,7 +40,7 @@ def get_state():
         })
     else:
         app.logger.error('ApiException {!r}'.format(form.errors))
-        raise ApiException({'errors': form.errors}, status_code=400)
+        raise ApiException('Validation error', payload={'errors': form.errors}, status_code=400)
 
 
 @app.route('/send-letter', methods=['POST'])
@@ -104,7 +104,7 @@ def send_letter():
         return jsonify(check_state(proofing_state))
     else:
         app.logger.error('ApiException {!r}'.format(form.errors))
-        raise ApiException({'errors': form.errors}, status_code=400)
+        raise ApiException('Validation error', payload={'errors': form.errors}, status_code=400)
 
 
 @app.route('/verify-code', methods=['POST'])
@@ -116,7 +116,9 @@ def verify_code():
         proofing_state = db.letter_proofing_statedb.get_state_by_user_id(user.user_id)
         if not form.verification_code.data == proofing_state.nin.verification_code:
             app.logger.error('Verification code for user {!r} does not match'.format(user))
-            raise ApiException({'success': False, 'reason': 'Verification code does not match'}, status_code=200)
+            # TODO: Throttling to discourage an adversary to try brute force
+            raise ApiException('Verification code does not match', payload={'success': False},
+                               status_code=200)
         proofing_state.nin.is_verified = True
         proofing_state.nin.verified_by = 'eduid-idproofing-letter'
         proofing_state.nin.verified_ts = True
@@ -131,6 +133,6 @@ def verify_code():
         return jsonify(ret)
     else:
         app.logger.error('ApiException {!r}'.format(form.errors))
-        raise ApiException({'errors': form.errors}, status_code=400)
+        raise ApiException(payload={'errors': form.errors}, status_code=400)
 
 

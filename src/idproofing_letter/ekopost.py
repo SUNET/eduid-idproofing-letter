@@ -3,7 +3,7 @@ import json
 import base64
 from datetime import datetime
 from hammock import Hammock
-from idproofing_letter.exceptions import ApiException
+from eduid_common.api.exceptions import ApiException
 
 __author__ = 'john'
 
@@ -26,7 +26,6 @@ class Ekopost(object):
                 auth = (self.app.config.get("EKOPOST_API_USER"), self.app.config.get("EKOPOST_API_PW"))
             self._ekopost_api = Hammock(self.app.config.get("EKOPOST_API_URI"), auth=auth, verify=verify_ssl)
         return self._ekopost_api
-
 
     def send(self, eppn, document):
         """
@@ -63,7 +62,6 @@ class Ekopost(object):
 
         return closed_campaign['id']
 
-
     def _create_campaign(self, name, output_date, cost_center):
         """
         Create a new campaign
@@ -86,8 +84,7 @@ class Ekopost(object):
         if response.status_code == 200:
             return response.json()
 
-        raise ApiException({'errors': response.text}, status_code=response.status_code)
-
+        raise ApiException('Ekopost exception: {!s}'.format(response.text), status_code=response.status_code)
 
     def _create_envelope(self, campaign_id, name, postage='priority',
                         plex='simplex', color='false'):
@@ -119,8 +116,7 @@ class Ekopost(object):
         if response.status_code == 200:
             return response.json()
 
-        raise ApiException({'errors': response.text}, status_code=response.status_code)
-
+        raise ApiException('Ekopost exception: {!s}'.format(response.text), status_code=response.status_code)
 
     def _create_content(self, campaign_id, envelope_id, data, length,
                        mime='application/pdf', type='document'):
@@ -153,7 +149,7 @@ class Ekopost(object):
         if response.status_code == 200:
             return response.json()
 
-        raise ApiException({'errors': response.text}, status_code=response.status_code)
+        raise ApiException('Ekopost exception: {!s}'.format(response.text), status_code=response.status_code)
 
 
     def _close_evenlope(self, campaign_id, envelope_id):
@@ -170,7 +166,7 @@ class Ekopost(object):
         if response.status_code == 200:
             return response.json()
 
-        raise ApiException({'errors': response.text}, status_code=response.status_code)
+        raise ApiException('Ekopost exception: {!s}'.format(response.text), status_code=response.status_code)
 
 
     def _close_campaign(self, campaign_id):
@@ -187,4 +183,4 @@ class Ekopost(object):
         if response.status_code == 200:
             return response.json()
 
-        raise ApiException({'errors': response.text}, status_code=response.status_code)
+        raise ApiException('Ekopost exception: {!s}'.format(response.text), status_code=response.status_code)

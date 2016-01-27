@@ -37,8 +37,8 @@ from flask import Flask, jsonify
 from flask_wtf.csrf import CsrfProtect
 from eduid_common.api.database import ApiDatabase
 from eduid_common.api.json_encoder import EduidJSONEncoder
+from eduid_common.api.exceptions import ApiException
 
-from idproofing_letter.exceptions import ApiException
 from idproofing_letter.forms import NinForm
 from idproofing_letter.ekopost import Ekopost
 
