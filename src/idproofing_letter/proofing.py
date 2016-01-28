@@ -13,6 +13,7 @@ from idproofing_letter.utils import get_short_hash
 
 __author__ = 'lundberg'
 
+
 def check_state(state):
     """
     :param state:  Users proofing state
@@ -51,6 +52,7 @@ def check_state(state):
             app.logger.info('Removed {!s}'.format(state))
             ret.update({
                 'endpoint': url_for('send_letter', _external=True),
+                'letter_expired': True,
                 'expected_fields': NinForm()._fields.keys(),  # Do we want expected_fields?
                 'csrf': generate_csrf()
             })

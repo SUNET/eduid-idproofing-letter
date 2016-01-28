@@ -149,4 +149,5 @@ class AppTests(MongoTestCase):
         app.config.update({'LETTER_WAIT_TIME_HOURS': -1})
         self.testapp = app.test_client()
         json_data = self.get_state(self.test_user_eppn)
+        self.assertTrue(json_data['letter_expired'])
         self.assertNotIn('letter_sent', json_data)
