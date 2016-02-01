@@ -49,7 +49,7 @@ class AppTests(MongoTestCase):
                                               (u'City', u'LANDET')]))
         ])
 
-        self.testapp = app.test_client()
+        self.client = app.test_client()
 
     def tearDown(self):
         super(AppTests, self).tearDown()
@@ -60,7 +60,7 @@ class AppTests(MongoTestCase):
     # Helper methods
     def get_state(self, eppn):
         data = {'eppn': eppn}
-        response = self.testapp.post('/get-state', data=data)
+        response = self.client.post('/get-state', data=data)
         self.assertEqual(response.status_code, 200)
         return json.loads(response.data)
 
@@ -68,21 +68,20 @@ class AppTests(MongoTestCase):
     def send_letter(self, eppn, nin, mock_get_postal_address):
         mock_get_postal_address.return_value = self.mock_address
         data = {'eppn': eppn, 'nin': nin}
-        response = self.testapp.post('/send-letter', data=data)
+        response = self.client.post('/send-letter', data=data)
         self.assertEqual(response.status_code, 200)
         return json.loads(response.data)
 
     def verify_code(self, eppn, code):
         data = {'eppn': eppn, 'verification_code': code}
-        response = self.testapp.post('/verify-code', data=data)
+        response = self.client.post('/verify-code', data=data)
         self.assertEqual(response.status_code, 200)
         return json.loads(response.data)
-
     # End helper methods
 
     def test_authenticate(self):
         with app.test_request_context():
-            self.testapp.get('/get-state')
+            self.client.get('/get-state')
             form = GetState()
             if form.validate_on_submit():
                 user = authenticate(form)
@@ -147,7 +146,6 @@ class AppTests(MongoTestCase):
         json_data = self.get_state(self.test_user_eppn)
         self.assertIn('letter_sent', json_data)
         app.config.update({'LETTER_WAIT_TIME_HOURS': -1})
-        self.testapp = app.test_client()
         json_data = self.get_state(self.test_user_eppn)
         self.assertTrue(json_data['letter_expired'])
         self.assertNotIn('letter_sent', json_data)
