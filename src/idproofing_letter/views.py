@@ -2,7 +2,7 @@
 
 from __future__ import absolute_import
 
-from flask import request, render_template, jsonify, url_for
+from flask import render_template, jsonify, url_for
 from flask_wtf.csrf import generate_csrf
 
 from idproofing_letter import app, db, ekopost, pdf
