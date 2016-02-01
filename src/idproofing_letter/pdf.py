@@ -18,9 +18,9 @@ def format_address(recipient):
         surname = recipient.get('Name')['Surname']                    # Mandatory
         name = u'{!s} {!s} {!s}'.format(given_name, middle_name, surname)
         # TODO: Take eventual CareOf and Address1(?) in to account
-        address = recipient.get('OfficialAddress').get('Address2')
-        postal_code = recipient.get('OfficialAddress').get('PostalCode')
-        city = recipient.get('OfficialAddress').get('City')
+        address = recipient.get('OfficialAddress')['Address2']        # Mandatory
+        postal_code = recipient.get('OfficialAddress')['PostalCode']  # Mandatory
+        city = recipient.get('OfficialAddress')['City']               # Mandatory
         return name, address, postal_code, city
     except (KeyError, TypeError, AttributeError) as e:
         app.logger.error('Postal address formatting failed: {!r}'.format(e))

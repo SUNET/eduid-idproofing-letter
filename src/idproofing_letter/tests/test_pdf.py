@@ -66,8 +66,15 @@ class FormatAddressTest(unittest.TestCase):
                     (u'GivenNameMarking', u'20'), (u'Surname', u'Testsson')])),
                 (u'OfficialAddress', OrderedDict([(u'Address2', u'\xd6RGATAN 79 LGH 10'),
                                                   (u'City', u'LANDET')]))
-            ])
+            ]),
+            OrderedDict([
+                (u'Name',
+                 {u'GivenName': u'Testaren Test',
+                  u'MiddleName': u'Tester',
+                  u'GivenNameMarking': u'20',
+                  u'Surname': u'Testsson'}),
+                (u'OfficialAddress', {})])
         ]
+
         for response in failing_navet_responses:
             self.assertRaises(ApiException, format_address, response)
-
