@@ -5,7 +5,7 @@ version = '0.1.2b4'
 
 requires = [
     'eduid-msg>=0.10.0',
-    'eduid-userdb>=0.0.4',
+    'eduid-userdb>=0.0.7b2',
     'eduid-common>=0.1.3b2',
     'Flask==0.10.1',
     'Flask-WTF==0.12',
