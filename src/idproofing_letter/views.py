@@ -129,7 +129,7 @@ def verify_code():
         data = proofing_state.nin.to_dict()
         data['official_address'] = proofing_state.proofing_letter.address
         data['transaction_id'] = proofing_state.proofing_letter.transaction_id
-        app.logger.info('Trying to return data:')
+        app.logger.info('Trying to return data for user: {!r}'.format(user))
         app.logger.info(json.dumps(data, cls=EduidJSONEncoder))
         app.logger.info('End data')
         ret = {'success': True, 'data': data}
