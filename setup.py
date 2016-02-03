@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 
-version = '0.1.2b4'
+version = '0.1.2b5'
 
 requires = [
     'eduid-msg>=0.10.0',
@@ -49,6 +49,5 @@ setup(name='eduid-idproofing-letter',
       extras_require={
           'testing': testing_extras,
       },
-      entry_points="""
-      """,
+      entry_points={}
       )
