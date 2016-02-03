@@ -4,9 +4,11 @@ from __future__ import absolute_import
 
 from flask import render_template, jsonify, url_for
 from flask_wtf.csrf import generate_csrf
+import json
 
-from idproofing_letter import app, db, ekopost, pdf
 from eduid_common.api.exceptions import ApiException
+from eduid_common.api.json_encoder import EduidJSONEncoder
+from idproofing_letter import app, db, ekopost, pdf
 from idproofing_letter.forms import NinForm, VerifyCodeForm, GetState
 from idproofing_letter.authentication import authenticate
 from idproofing_letter.proofing import create_proofing_state, check_state
@@ -127,6 +129,9 @@ def verify_code():
         data = proofing_state.nin.to_dict()
         data['official_address'] = proofing_state.proofing_letter.address
         data['transaction_id'] = proofing_state.proofing_letter.transaction_id
+        app.logger.info('Trying to return data:')
+        app.logger.info(json.dumps(data, cls=EduidJSONEncoder))
+        app.logger.info('End data')
         ret = {'success': True, 'data': data}
         # Remove proofing user
         db.letter_proofing_statedb.remove_document({'user_id': proofing_state.user_id})
