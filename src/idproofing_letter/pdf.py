@@ -46,7 +46,7 @@ def create_pdf(recipient, verification_code, created_timestamp):
     name, address, postal_code, city = format_address(recipient)
 
     # Calculate the validity period of the verification
-    # code that is to be show in the letter.
+    # code that is to be shown in the letter.
     max_wait = timedelta(hours=app.config['LETTER_WAIT_TIME_HOURS'])
     validity_period = (created_timestamp + max_wait).strftime('%Y-%m-%d')
 
