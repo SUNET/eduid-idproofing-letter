@@ -1,5 +1,6 @@
 from xhtml2pdf import pisa
 from StringIO import StringIO
+from datetime import timedelta
 from eduid_common.api.exceptions import ApiException
 from idproofing_letter import app
 
@@ -27,15 +28,16 @@ def format_address(recipient):
         raise ApiException(payload={'errors': 'Postal address formatting failed: {!r}'.format(e)}, status_code=500)
 
 
-def create_pdf(recipient, verification_code):
+def create_pdf(recipient, verification_code, created_timestamp):
     """
     Create a letter in the form of a PDF-document,
     containing a verification code to be sent to a user.
 
     :param recipient: Official address the letter should be sent to
     :param verification_code: Verification code to include in the letter
+    :param created_timestamp: Timestamp for when the proofing was initiated
     """
-    # imported here to avoid exposing
+    # Imported here to avoid exposing
     # render_template to the calling function.
     from flask import render_template
 
@@ -43,12 +45,18 @@ def create_pdf(recipient, verification_code):
 
     name, address, postal_code, city = format_address(recipient)
 
+    # Calculate the validity period of the verification
+    # code that is to be shown in the letter.
+    max_wait = timedelta(hours=app.config['LETTER_WAIT_TIME_HOURS'])
+    validity_period = (created_timestamp + max_wait).strftime('%Y-%m-%d')
+
     letter_template = render_template('letter.html',
                                       recipient_name=name,
                                       recipient_address=address,
                                       recipient_postal_code=postal_code,
                                       recipient_city=city,
-                                      code=verification_code)
+                                      recipient_verification_code=verification_code,
+                                      recipient_validity_period=validity_period)
 
     if app.config.get("EKOPOST_DEBUG_PDF", None):
         pdf_document = open(app.config.get("EKOPOST_DEBUG_PDF"), "w")

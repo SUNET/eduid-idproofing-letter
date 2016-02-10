@@ -88,11 +88,13 @@ def send_letter():
         # and therefore we can now create the letter as a PDF-document and send it.
         if app.config.get("EKOPOST_DEBUG_PDF", None):
             pdf.create_pdf(proofing_state.proofing_letter.address,
-                           proofing_state.nin.verification_code)
+                           proofing_state.nin.verification_code,
+                           proofing_state.nin.created_ts)
             campaign_id = 'debug mode transaction id'
         else:
             pdf_letter = pdf.create_pdf(proofing_state.proofing_letter.address,
-                                        proofing_state.nin.verification_code)
+                                        proofing_state.nin.verification_code,
+                                        proofing_state.nin.created_ts)
             try:
                 campaign_id = ekopost.send(user.eppn, pdf_letter)
             except ApiException as api_exception:
