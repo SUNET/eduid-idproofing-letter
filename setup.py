@@ -8,7 +8,7 @@ requires = [
     'eduid-userdb>=0.0.7b2',
     'eduid-common>=0.1.3b2',
     'Flask==0.10.1',
-    'Flask-WTF==0.12',
+    'flask-apispec>=0.3.2',
     'gunicorn==19.4.1',
     'Pillow==3.0.0',
     'xhtml2pdf==0.0.6',

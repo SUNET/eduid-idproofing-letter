@@ -10,17 +10,15 @@ from eduid_common.api.exceptions import ApiException
 __author__ = 'lundberg'
 
 
-# TODO: Get user auth info from something else than a cookie
-# TODO: Maybe we should use sessions so we don't have to re-auth the user
-# TODO: for each call.
-def authenticate(form):
+# TODO: Not for production use
+def authenticate(data):
     """
-    :param form:
-    :type form: flask_wtf.form.Form
+    :param data:
+    :type data: dict
     :return: authenticated users of False
     :rtype: eduid_userdb.user.User
     """
-    eppn = form.eppn.data
+    eppn = data.get('eppn')
     app.logger.info('Trying to authenticate user {!s}'.format(eppn))
 
     if not eppn:

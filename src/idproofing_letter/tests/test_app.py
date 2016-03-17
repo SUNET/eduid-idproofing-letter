@@ -9,9 +9,10 @@ from datetime import datetime
 from collections import OrderedDict
 from mock import patch
 
+from flask import request
 from eduid_userdb.testing import MongoTestCase
 from idproofing_letter import app, db
-from idproofing_letter.forms import GetState
+from idproofing_letter.schemas import EppnRequestSchema
 from idproofing_letter.authentication import authenticate
 
 __author__ = 'lundberg'
@@ -48,6 +49,7 @@ class AppTests(MongoTestCase):
                                               (u'PostalCode', u'12345'),
                                               (u'City', u'LANDET')]))
         ])
+        self._json = 'application/json'
 
         self.client = app.test_client()
 
@@ -60,7 +62,7 @@ class AppTests(MongoTestCase):
     # Helper methods
     def get_state(self, eppn):
         data = {'eppn': eppn}
-        response = self.client.post('/get-state', data=data)
+        response = self.client.post('/get-state', data=json.dumps(data), content_type=self._json)
         self.assertEqual(response.status_code, 200)
         return json.loads(response.data)
 
@@ -68,24 +70,31 @@ class AppTests(MongoTestCase):
     def send_letter(self, eppn, nin, mock_get_postal_address):
         mock_get_postal_address.return_value = self.mock_address
         data = {'eppn': eppn, 'nin': nin}
-        response = self.client.post('/send-letter', data=data)
+        response = self.client.post('/send-letter', data=json.dumps(data), content_type=self._json)
         self.assertEqual(response.status_code, 200)
         return json.loads(response.data)
 
     def verify_code(self, eppn, code):
         data = {'eppn': eppn, 'verification_code': code}
-        response = self.client.post('/verify-code', data=data)
+        response = self.client.post('/verify-code', data=json.dumps(data), content_type=self._json)
         self.assertEqual(response.status_code, 200)
         return json.loads(response.data)
     # End helper methods
 
     def test_authenticate(self):
-        with app.test_request_context():
-            self.client.get('/get-state')
-            form = GetState()
-            if form.validate_on_submit():
-                user = authenticate(form)
+        data = {'eppn': self.test_user_eppn}
+        with app.test_request_context('/get-state', method='POST', data=json.dumps(data), content_type=self._json):
+            schema, errors = EppnRequestSchema().load(request.get_json())
+            if not errors:
+                user = authenticate(schema)
                 self.assertEqual(user.eppn, self.test_user_eppn)
+
+    def test_bad_input_get_status(self):
+        data = {'not_eppn': 'dummy'}
+        response = self.client.post('/get-state', data=json.dumps(data), content_type=self._json)
+        self.assertEqual(response.status_code, 422)
+        response_data = json.loads(response.data)
+        self.assertIn('eppn', response_data['message'])
 
     def test_letter_not_sent_status(self):
         json_data = self.get_state(self.test_user_eppn)

@@ -34,12 +34,11 @@
 from __future__ import absolute_import
 
 from flask import Flask, jsonify
-from flask_wtf.csrf import CsrfProtect
+from flask_apispec.extension import FlaskApiSpec
+from webargs.flaskparser import parser as webargs_flaskparser
 from eduid_common.api.database import ApiDatabase
 from eduid_common.api.json_encoder import EduidJSONEncoder
 from eduid_common.api.exceptions import ApiException
-
-from idproofing_letter.forms import NinForm
 from idproofing_letter.ekopost import Ekopost
 
 import logging
@@ -48,7 +47,7 @@ from logging.handlers import RotatingFileHandler
 __import__('pkg_resources').declare_namespace(__name__)
 
 # Initiate application
-app = Flask(__name__)
+app = Flask(__name__, static_folder=None)
 
 # Setup JSON encoding
 app.json_encoder = EduidJSONEncoder
@@ -57,9 +56,11 @@ app.json_encoder = EduidJSONEncoder
 app.config.from_object('idproofing_letter.settings.common')
 app.config.from_envvar('IDPROOFING_LETTER_SETTINGS', silent=True)
 
+app.config['TRAP_BAD_REQUEST_ERRORS'] = True
+app.config['TRAP_HTTP_EXCEPTIONS'] = True
+
 # Initiate external modules
 db = ApiDatabase(app)
-csrf = CsrfProtect(app)
 ekopost = Ekopost(app)
 
 # Set up logging
@@ -79,19 +80,27 @@ if app.config['SECRET_KEY'] is None:
     app.logger.error('Missing SECRET_KEY in the settings file')
 
 
-@csrf.error_handler
-def csrf_error(reason):
-    raise ApiException(message=reason, status_code=400)
+@webargs_flaskparser.error_handler
+def handle_webargs_exception(error):
+    app.logger.error('ApiException {!r}'.format(error))
+    raise(ApiException(error.messages, error.status_code))
 
 
 @app.errorhandler(ApiException)
-def handle_exception(error):
+def handle_flask_exception(error):
+    app.logger.error('ApiException {!r}'.format(error))
     response = jsonify(error.to_dict())
     response.status_code = error.status_code
     return response
 
 
 # views needs to be imported after app init due to circular dependency
-import idproofing_letter.views
+from idproofing_letter import views
+
+if app.config['APISPEC_SPEC']:
+    docs = FlaskApiSpec(app)
+    docs.register(views.get_state)
+    docs.register(views.send_letter)
+    docs.register(views.verify_code)
 
 app.logger.info('Application started')

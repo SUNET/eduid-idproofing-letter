@@ -3,12 +3,11 @@
 from __future__ import absolute_import
 
 from flask import url_for
-from flask_wtf.csrf import generate_csrf
 from datetime import datetime, timedelta
 
 from eduid_userdb.proofing import LetterProofingState
 from idproofing_letter import app, db
-from idproofing_letter.forms import NinForm, VerifyCodeForm
+from idproofing_letter.schemas import SendLetterRequestSchema, VerifyCodeRequestSchema
 from idproofing_letter.utils import get_short_hash
 
 __author__ = 'lundberg'
@@ -26,8 +25,7 @@ def check_state(state):
         # User needs to accept sending a letter
         ret.update({
             'endpoint': url_for('send_letter', _external=True),
-            'csrf': generate_csrf(),
-            'expected_fields': NinForm()._fields.keys()  # Do we want expected_fields?
+            'expected_fields': SendLetterRequestSchema().fields.keys()  # Do we want expected_fields?
         })
     elif state.proofing_letter.is_sent:
         # Check how long ago the letter was sent
@@ -40,10 +38,9 @@ def check_state(state):
             # The user has to wait for the letter to arrive
             ret.update({
                 'endpoint': url_for('verify_code', _external=True),
-                'csrf': generate_csrf(),
                 'letter_sent': sent_dt,
                 'letter_expires': sent_dt + max_wait,
-                'expected_fields': VerifyCodeForm()._fields.keys(),  # Do we want expected_fields?
+                'expected_fields': VerifyCodeRequestSchema().fields.keys(),  # Do we want expected_fields?
             })
         else:
             # If the letter haven't reached the user within the allotted time
@@ -53,8 +50,7 @@ def check_state(state):
             ret.update({
                 'endpoint': url_for('send_letter', _external=True),
                 'letter_expired': True,
-                'expected_fields': NinForm()._fields.keys(),  # Do we want expected_fields?
-                'csrf': generate_csrf()
+                'expected_fields': SendLetterRequestSchema().fields.keys(),  # Do we want expected_fields?
             })
     return ret
 

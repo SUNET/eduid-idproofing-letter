@@ -36,11 +36,21 @@ LOG_LEVEL = 'INFO'
 LOG_MAX_BYTES = 10000
 LOG_BACKUP_COUNT = 10
 
-# No CSRF for now
-WTF_CSRF_ENABLED = False
-
 EKOPOST_API_URI = 'https://api.ekopost.se'
 EKOPOST_API_VERIFY_SSL = 'true'
 EKOPOST_API_USER = ''
 EKOPOST_API_PW = ''
 EKOPOST_DEBUG_PDF = ''
+
+
+# Api Spec config - https://github.com/OAI/OpenAPI-Specification
+# from apispec import APISpec
+# APISPEC_SPEC = APISpec(
+#    title = 'eduid-idproofing-letter',
+#    version = 'v1',
+#    plugins = ('apispec.ext.marshmallow',),
+# )
+
+APISPEC_SPEC = None
+APISPEC_SWAGGER_URL = '/swagger/'
+APISPEC_SWAGGER_UI_URL = '/swagger-ui/'
