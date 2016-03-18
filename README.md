@@ -8,12 +8,11 @@ POC Flask api micro service
 Install
 -------
 
-Generally installed as a dependency. For development and testing,
-make a virtualenv, activate it, and install like::
+For development and testing, make a virtualenv, activate it, and install like::
 
   $ virtualenv venv
   $ source venv/bin/activate
-  $ python setup.py testing
+  $ pip install -r requirements/dev.txt
 
 Test
 ----

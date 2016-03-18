@@ -25,7 +25,7 @@ testing_extras = test_requires + [
     'nosexcover==1.0.10',
 ]
 
-long_description = open('README.txt').read()
+long_description = open('README.md').read()
 
 setup(name='eduid-idproofing-letter',
       version=version,
