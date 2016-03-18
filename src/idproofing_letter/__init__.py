@@ -56,9 +56,6 @@ app.json_encoder = EduidJSONEncoder
 app.config.from_object('idproofing_letter.settings.common')
 app.config.from_envvar('IDPROOFING_LETTER_SETTINGS', silent=True)
 
-app.config['TRAP_BAD_REQUEST_ERRORS'] = True
-app.config['TRAP_HTTP_EXCEPTIONS'] = True
-
 # Initiate external modules
 db = ApiDatabase(app)
 ekopost = Ekopost(app)
