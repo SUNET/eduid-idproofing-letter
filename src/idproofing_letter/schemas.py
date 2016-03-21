@@ -1,45 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import re
-from marshmallow import Schema, fields, ValidationError, pre_dump
-from idproofing_letter import app
+from marshmallow import Schema, fields
+from eduid_common.api.schema.schemas import ProofingDataSchema
+from eduid_common.api.schema.validators import validate_nin
 
 __author__ = 'lundberg'
-
-nin_re = re.compile(r'^(18|19|20)\d{2}(0[1-9]|1[0-2])\d{2}\d{4}$')
-
-
-# Common
-class ProofingDataSchema(Schema):
-
-    class Meta:
-        strict = True
-
-    number = fields.String(required=True)
-    created_by = fields.String(required=True)
-    created_ts = fields.Integer(required=True)
-    verified = fields.Boolean(required=True)
-    verified_by = fields.String(required=True)
-    verified_ts = fields.Integer(required=True)
-    verification_code = fields.String(required=True)
-    official_address = fields.Dict(required=True)
-    transaction_id = fields.String(required=True)
-
-    # XXX: For maintaining UNIX TS for datetimes
-    @pre_dump
-    def eduid_datetime_encoder(self, in_data):
-        for key in ['created_ts', 'verified_ts']:
-            dt = in_data.get(key)
-            if dt:
-                in_data[key] = app.json_encoder().default(dt)
-        return in_data
-
-
-def validate_nin(nin):
-    if nin_re.match(nin):
-        return True
-    raise ValidationError('nin needs to be formatted as 18|19|20yymmddxxxx')
-# End common
 
 
 # Input validation
@@ -75,16 +40,8 @@ class BaseResponseSchema(Schema):
 class GetStateResponseSchema(BaseResponseSchema):
 
     letter_sent = fields.Boolean()
-    letter_expires = fields.Integer()
+    letter_expires = fields.DateTime(format='%s')
     letter_expired = fields.Boolean()
-
-    # XXX: For maintaining UNIX TS for datetimes
-    @pre_dump
-    def eduid_datetime_encoder(self, in_data):
-        dt = in_data.get('letter_expires')
-        if dt:
-            in_data['letter_expires'] = app.json_encoder().default(dt)
-        return in_data
 
 
 class VerifyCodeResponseSchema(BaseResponseSchema):
