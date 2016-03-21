@@ -6,8 +6,8 @@ from flask import url_for
 from flask_apispec import use_kwargs, marshal_with
 import json
 
+from eduid_common.api.schema.schemas import ProofingDataSchema  # XXX: Until we no longer wants to dump proofing to log
 from eduid_common.api.exceptions import ApiException
-from eduid_common.api.json_encoder import EduidJSONEncoder
 from idproofing_letter import app, db, ekopost, pdf
 from idproofing_letter import schemas
 from idproofing_letter.authentication import authenticate
@@ -116,9 +116,9 @@ def verify_code(**kwargs):
     return_data = proofing_state.nin.to_dict()
     return_data['official_address'] = proofing_state.proofing_letter.address
     return_data['transaction_id'] = proofing_state.proofing_letter.transaction_id
-    # TODO: Remove dumping data to log
+    # XXX: Remove dumping data to log
     app.logger.info('Trying to return data for user: {!r}'.format(user))
-    app.logger.info(json.dumps(return_data, cls=EduidJSONEncoder))
+    app.logger.info(json.dumps(ProofingDataSchema().dump(return_data)))
     app.logger.info('End data')
     ret = {'success': True, 'data': return_data}
     # Remove proofing user
