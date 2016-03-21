@@ -33,7 +33,7 @@ SECRET_KEY = None
 LOG_FILE = None
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 LOG_LEVEL = 'INFO'
-LOG_MAX_BYTES = 10000
+LOG_MAX_BYTES = 1000000  # 1 MB
 LOG_BACKUP_COUNT = 10
 
 EKOPOST_API_URI = 'https://api.ekopost.se'
