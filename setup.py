@@ -5,7 +5,7 @@ version = '0.1.2b6'
 
 requires = [
     'eduid-msg>=0.10.0',
-    'eduid-userdb>=0.0.7b2',
+    'eduid-userdb>=0.1.0b0',
     'eduid-common>=0.1.3b2',
     'Flask==0.10.1',
     'flask-apispec>=0.3.2',

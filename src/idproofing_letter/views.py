@@ -6,9 +6,9 @@ from flask import url_for
 from flask_apispec import use_kwargs, marshal_with
 import json
 
-from eduid_common.api.schema.schemas import ProofingDataSchema  # XXX: Until we no longer wants to dump proofing to log
+from eduid_common.api.schemas.proofing_data import LetterProofingDataSchema  # XXX: Until we no longer wants to dump proofing to log
 from eduid_common.api.exceptions import ApiException
-from idproofing_letter import app, db, ekopost, pdf
+from idproofing_letter import app, ekopost, pdf
 from idproofing_letter import schemas
 from idproofing_letter.authentication import authenticate
 from idproofing_letter.proofing import create_proofing_state, check_state
@@ -22,9 +22,13 @@ __author__ = 'lundberg'
 @marshal_with(schemas.GetStateResponseSchema)
 def get_state(**kwargs):
     user = authenticate(kwargs)
-    proofing_state = db.letter_proofing_statedb.get_state_by_user_id(user.user_id, raise_on_missing=False)
     app.logger.info('Getting proofing state for user {!r}'.format(user))
+    proofing_state = app.proofing_statedb.get_state_by_eppn(user.eppn, raise_on_missing=False)
+    if not proofing_state:
+        # No warning as proofing state can be None
+        proofing_state = app.proofing_statedb.get_state_by_user_id(user.user_id, user.eppn, raise_on_missing=False)
     if proofing_state:
+        app.logger.info('Found proofing state for user {!r}'.format(user))
         # If a proofing state is found continue the flow
         return check_state(proofing_state)
     response = {
@@ -40,8 +44,11 @@ def get_state(**kwargs):
 def send_letter(**kwargs):
     user = authenticate(kwargs)
     nin = kwargs.get('nin')
-    app.logger.info('Sending letter for user {!r}'.format(user))
-    proofing_state = db.letter_proofing_statedb.get_state_by_user_id(user.user_id, raise_on_missing=False)
+    app.logger.info('Send letter for user {!r} initiated'.format(user))
+    proofing_state = app.proofing_statedb.get_state_by_eppn(user.eppn, raise_on_missing=False)
+    if not proofing_state:
+        # No warning as proofing state can be None
+        proofing_state = app.proofing_statedb.get_state_by_user_id(user.user_id, user.eppn, raise_on_missing=False)
 
     app.logger.info('Getting address for user {!r}'.format(user))
     app.logger.debug('NIN: {!s}'.format(nin))
@@ -54,7 +61,7 @@ def send_letter(**kwargs):
 
     if not proofing_state:
         # Create a LetterNinProofingUser in proofingdb
-        proofing_state = create_proofing_state(user.user_id, nin)
+        proofing_state = create_proofing_state(user.eppn, nin)
         app.logger.info('Created proofing state for user {!r}'.format(user))
 
     if proofing_state.proofing_letter.is_sent:
@@ -70,7 +77,7 @@ def send_letter(**kwargs):
 
     # Set or update official address
     proofing_state.proofing_letter.address = address
-    db.letter_proofing_statedb.save(proofing_state)
+    app.proofing_statedb.save(proofing_state)
 
     # User accepted a letter to their official address and data saved in db checks out
     # and therefore we can now create the letter as a PDF-document and send it.
@@ -92,7 +99,7 @@ def send_letter(**kwargs):
     proofing_state.proofing_letter.transaction_id = campaign_id
     proofing_state.proofing_letter.is_sent = True
     proofing_state.proofing_letter.sent_ts = True
-    db.letter_proofing_statedb.save(proofing_state)
+    app.proofing_statedb.save(proofing_state)
     return check_state(proofing_state)
 
 
@@ -102,7 +109,10 @@ def send_letter(**kwargs):
 def verify_code(**kwargs):
     user = authenticate(kwargs)
     app.logger.info('Verifying code for user {!r}'.format(user))
-    proofing_state = db.letter_proofing_statedb.get_state_by_user_id(user.user_id)
+    proofing_state = app.proofing_statedb.get_state_by_eppn(user.eppn, raise_on_missing=False)
+    if not proofing_state:
+        app.logger.warning('Proofing state looked up by user_id')
+        proofing_state = app.proofing_statedb.get_state_by_user_id(user.user_id, user.eppn, raise_on_missing=True)
     if not kwargs.get('verification_code') == proofing_state.nin.verification_code:
         app.logger.error('Verification code for user {!r} does not match'.format(user))
         # TODO: Throttling to discourage an adversary to try brute force
@@ -118,10 +128,10 @@ def verify_code(**kwargs):
     return_data['transaction_id'] = proofing_state.proofing_letter.transaction_id
     # XXX: Remove dumping data to log
     app.logger.info('Trying to return data for user: {!r}'.format(user))
-    app.logger.info(json.dumps(ProofingDataSchema().dump(return_data)))
+    app.logger.info(json.dumps(LetterProofingDataSchema().dump(return_data)))
     app.logger.info('End data')
     ret = {'success': True, 'data': return_data}
     # Remove proofing user
-    db.letter_proofing_statedb.remove_document({'user_id': proofing_state.user_id})
+    app.proofing_statedb.remove_document({'eduPersonPrincipalName': proofing_state.eppn})
     return ret
 

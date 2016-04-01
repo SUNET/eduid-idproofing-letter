@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from marshmallow import Schema, fields
-from eduid_common.api.schema.schemas import ProofingDataSchema
-from eduid_common.api.schema.validators import validate_nin
+from eduid_common.api.schemas.proofing_data import LetterProofingDataSchema
+from eduid_common.api.schemas.validators import validate_nin
 
 __author__ = 'lundberg'
 
@@ -47,5 +47,5 @@ class GetStateResponseSchema(BaseResponseSchema):
 class VerifyCodeResponseSchema(BaseResponseSchema):
 
     success = fields.Boolean(required=True)
-    data = fields.Nested(ProofingDataSchema, required=True)
+    data = fields.Nested(LetterProofingDataSchema, required=True)
 # End output validation

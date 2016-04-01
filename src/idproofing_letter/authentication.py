@@ -4,7 +4,7 @@ from __future__ import absolute_import
 
 from eduid_userdb.exceptions import UserDoesNotExist, MultipleUsersReturned
 
-from idproofing_letter import app, db
+from idproofing_letter import app
 from eduid_common.api.exceptions import ApiException
 
 __author__ = 'lundberg'
@@ -26,7 +26,7 @@ def authenticate(data):
 
     # Get user from central database
     try:
-        user = db.userdb.get_user_by_eppn(eppn, raise_on_missing=True)
+        user = app.central_userdb.get_user_by_eppn(eppn, raise_on_missing=True)
     except (UserDoesNotExist, MultipleUsersReturned) as e:
         app.logger.error('Could not find user or found multiple users in central database.')
         app.logger.error(e)

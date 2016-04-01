@@ -6,7 +6,7 @@ from flask import url_for
 from datetime import datetime, timedelta
 
 from eduid_userdb.proofing import LetterProofingState
-from idproofing_letter import app, db
+from idproofing_letter import app
 from idproofing_letter.schemas import SendLetterRequestSchema, VerifyCodeRequestSchema
 from idproofing_letter.utils import get_short_hash
 
@@ -45,7 +45,7 @@ def check_state(state):
         else:
             # If the letter haven't reached the user within the allotted time
             # remove the previous proofing object and restart the proofing flow
-            db.letter_proofing_statedb.remove_document({'user_id': state.user_id})
+            app.proofing_statedb.remove_document({'eduPersonPrincipalName': state.eppn})
             app.logger.info('Removed {!s}'.format(state))
             ret.update({
                 'endpoint': url_for('send_letter', _external=True),
@@ -55,9 +55,9 @@ def check_state(state):
     return ret
 
 
-def create_proofing_state(user_id, nin):
+def create_proofing_state(eppn, nin):
     proofing_state = LetterProofingState({
-        'user_id': user_id,
+        'eduPersonPrincipalName': eppn,
         'nin': {
             'number': nin,
             'created_by': 'eduid-idproofing-letter',

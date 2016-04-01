@@ -36,9 +36,10 @@ from __future__ import absolute_import
 from flask import Flask, jsonify
 from flask_apispec.extension import FlaskApiSpec
 from webargs.flaskparser import parser as webargs_flaskparser
-from eduid_common.api.database import ApiDatabase
-from eduid_common.api.logging import ApiLogging
+from eduid_common.api.logging import init_logging
 from eduid_common.api.exceptions import ApiException
+from eduid_userdb import UserDB
+from eduid_userdb.proofing import LetterProofingStateDB
 from idproofing_letter.ekopost import Ekopost
 
 __import__('pkg_resources').declare_namespace(__name__)
@@ -50,12 +51,18 @@ app = Flask(__name__, static_folder=None)
 app.config.from_object('idproofing_letter.settings.common')
 app.config.from_envvar('IDPROOFING_LETTER_SETTINGS', silent=True)
 
-# Initiate external modules
-db = ApiDatabase(app)
-ekopost = Ekopost(app)
-
 # Set up logging
-ApiLogging(app)
+init_logging(app)
+
+# Init dbs
+try:
+    app.central_userdb = UserDB(app.config['MONGO_URI'], 'eduid_am')
+    app.proofing_statedb = LetterProofingStateDB(app.config['MONGO_URI'])
+except KeyError:
+    pass  # For tests until reworked with app init factory pattern
+
+# Initiate external modules
+ekopost = Ekopost(app)
 
 # Check for secret key
 if app.config['SECRET_KEY'] is None:

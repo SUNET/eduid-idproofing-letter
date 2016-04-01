@@ -8,10 +8,13 @@ import json
 from datetime import datetime
 from collections import OrderedDict
 from mock import patch
+from bson import ObjectId
 
 from flask import request
 from eduid_userdb.testing import MongoTestCase
-from idproofing_letter import app, db
+from eduid_userdb import UserDB
+from eduid_userdb.proofing import LetterProofingStateDB
+from idproofing_letter import app
 from idproofing_letter.schemas import EppnRequestSchema
 from idproofing_letter.authentication import authenticate
 
@@ -38,6 +41,8 @@ class AppTests(MongoTestCase):
             })
         self.settings.update(_settings)
         app.config.update(self.settings)
+        app.central_userdb = UserDB(app.config['MONGO_URI'], 'eduid_am')
+        app.proofing_statedb = LetterProofingStateDB(app.config['MONGO_URI'])
 
         self.test_user_eppn = 'babba-labba'
         self.test_user_nin = '200001023456'
@@ -56,8 +61,8 @@ class AppTests(MongoTestCase):
     def tearDown(self):
         super(AppTests, self).tearDown()
         with app.app_context():
-            db.letter_proofing_statedb._drop_whole_collection()
-            db.userdb._drop_whole_collection()
+            app.proofing_statedb._drop_whole_collection()
+            app.central_userdb._drop_whole_collection()
 
     # Helper methods
     def get_state(self, eppn):
@@ -120,9 +125,8 @@ class AppTests(MongoTestCase):
     def test_verify_letter_code(self):
         self.send_letter(self.test_user_eppn, self.test_user_nin)
         with app.test_request_context():
-            user = db.userdb.get_user_by_eppn(self.test_user_eppn, raise_on_missing=True)
-            # TODO: Need to change get_state_by_user_id to get_state_by_eppn
-            proofing_state = db.letter_proofing_statedb.get_state_by_user_id(user.user_id, raise_on_missing=False)
+            with app.app_context():
+                proofing_state = app.proofing_statedb.get_state_by_eppn(self.test_user_eppn, raise_on_missing=False)
         json_data = self.verify_code(self.test_user_eppn, proofing_state.nin.verification_code)
         self.assertTrue(json_data['success'])
         proofing_data = json_data.get('data', None)
@@ -142,9 +146,8 @@ class AppTests(MongoTestCase):
         self.send_letter(self.test_user_eppn, self.test_user_nin)
         self.get_state(self.test_user_eppn)
         with app.test_request_context():
-            user = db.userdb.get_user_by_eppn(self.test_user_eppn, raise_on_missing=True)
-            # TODO: Need to change get_state_by_user_id to get_state_by_eppn
-            proofing_state = db.letter_proofing_statedb.get_state_by_user_id(user.user_id, raise_on_missing=False)
+            user = app.central_userdb.get_user_by_eppn(self.test_user_eppn, raise_on_missing=True)
+            proofing_state = app.proofing_statedb.get_state_by_eppn(user.eppn, raise_on_missing=False)
         json_data = self.verify_code(self.test_user_eppn, proofing_state.nin.verification_code)
         self.assertTrue(json_data['success'])
         proofing_data = json_data.get('data', None)
@@ -158,3 +161,34 @@ class AppTests(MongoTestCase):
         json_data = self.get_state(self.test_user_eppn)
         self.assertTrue(json_data['letter_expired'])
         self.assertNotIn('letter_sent', json_data)
+
+    def test_deprecated_proofing_state(self):
+        deprecated_data = {
+            'user_id': ObjectId('012345678901234567890123'),
+            'nin': {
+                'created_by': 'eduid-userdb.tests',
+                'created_ts': datetime(2015, 11, 9, 12, 53, 9, 708761),
+                'number': '200102034567',
+                'verification_code': 'abc123',
+                'verified': False
+            },
+            'proofing_letter': {
+                'is_sent': False,
+                'sent_ts': None,
+                'transaction_id': None,
+                'address': self.mock_address
+            }
+        }
+        with app.app_context():
+            app.proofing_statedb._coll.insert(deprecated_data)
+            state = app.proofing_statedb.get_state_by_user_id('012345678901234567890123', self.test_user_eppn)
+        self.assertIsNotNone(state)
+        state_dict = state.to_dict()
+        self.assertItemsEqual(state_dict.keys(), ['_id', 'eduPersonPrincipalName', 'nin', 'proofing_letter',
+                                                  'modified_ts'])
+        self.assertItemsEqual(state_dict['nin'].keys(), ['created_by', 'created_ts', 'number', 'verification_code',
+                                                         'verified'])
+        self.assertItemsEqual(state_dict['proofing_letter'].keys(), ['is_sent', 'sent_ts', 'transaction_id',
+                                                                     'address'])
+
+
