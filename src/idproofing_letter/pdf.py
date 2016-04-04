@@ -28,7 +28,7 @@ def format_address(recipient):
         raise ApiException(payload={'errors': 'Postal address formatting failed: {!r}'.format(e)}, status_code=500)
 
 
-def create_pdf(recipient, verification_code, created_timestamp):
+def create_pdf(recipient, verification_code, created_timestamp, primary_mail_address):
     """
     Create a letter in the form of a PDF-document,
     containing a verification code to be sent to a user.
@@ -36,6 +36,7 @@ def create_pdf(recipient, verification_code, created_timestamp):
     :param recipient: Official address the letter should be sent to
     :param verification_code: Verification code to include in the letter
     :param created_timestamp: Timestamp for when the proofing was initiated
+    :param primary_mail_address The users primary mail address
     """
     # Imported here to avoid exposing
     # render_template to the calling function.
@@ -56,7 +57,8 @@ def create_pdf(recipient, verification_code, created_timestamp):
                                       recipient_postal_code=postal_code,
                                       recipient_city=city,
                                       recipient_verification_code=verification_code,
-                                      recipient_validity_period=validity_period)
+                                      recipient_validity_period=validity_period,
+                                      recipient_primary_mail_address=primary_mail_address)
 
     if app.config.get("EKOPOST_DEBUG_PDF", None):
         pdf_document = open(app.config.get("EKOPOST_DEBUG_PDF"), "w")
