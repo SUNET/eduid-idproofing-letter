@@ -8,7 +8,8 @@ import json
 
 from eduid_common.api.schemas.proofing_data import LetterProofingDataSchema  # XXX: Until we no longer wants to dump proofing to log
 from eduid_common.api.exceptions import ApiException
-from idproofing_letter import app, ekopost, pdf
+from idproofing_letter import app, ekopost
+from idproofing_letter import pdf
 from idproofing_letter import schemas
 from idproofing_letter.authentication import authenticate
 from idproofing_letter.proofing import create_proofing_state, check_state

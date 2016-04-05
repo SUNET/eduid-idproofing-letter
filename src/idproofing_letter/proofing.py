@@ -6,9 +6,9 @@ from flask import url_for
 from datetime import datetime, timedelta
 
 from eduid_userdb.proofing import LetterProofingState
+from eduid_common.api.utils import get_short_hash
 from idproofing_letter import app
 from idproofing_letter.schemas import SendLetterRequestSchema, VerifyCodeRequestSchema
-from idproofing_letter.utils import get_short_hash
 
 __author__ = 'lundberg'
 
