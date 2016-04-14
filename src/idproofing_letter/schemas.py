@@ -39,7 +39,7 @@ class BaseResponseSchema(Schema):
 
 class GetStateResponseSchema(BaseResponseSchema):
 
-    letter_sent = fields.Boolean()
+    letter_sent = fields.DateTime(format='%s')
     letter_expires = fields.DateTime(format='%s')
     letter_expired = fields.Boolean()
 

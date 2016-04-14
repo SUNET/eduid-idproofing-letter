@@ -15,7 +15,7 @@
             }
             @frame text_frame {
                 /* -pdf-frame-border: 1; for debugging the layout */
-                left: 30mm; width: 150mm; top: 90mm; height: 180mm;
+                left: 30mm; width: 150mm; top: 90mm; height: 200mm;
             }
         }
     </style>
@@ -48,17 +48,26 @@
             Om du mot förmodan inte har begärt en kod från eduID, var vänlig rapportera detta till support@eduid.se.
             <br>
         </p>
-    <p style="font-size: 12pt"><b>Welcome to confirm your eduID account</b><br>
-        Your confirmation code, which expires {{ recipient_validity_period }}, is:
-        <strong>{{ recipient_verification_code }}</strong><br>
-        Please login to https://dashboard.eduid.se with the username and password that you used
-        when creating your account and follow the instructions below:<br>
-        1. Open the tab "Confirm Identity".<br>
-        2. Click on "CONFIRM WITH LETTER" next to your national identity number.<br>
-        3. Enter the confirmation code in the white field of the window that opens.<br>
-        4. Click "OK".<br>
+        <p style="font-size: 12pt"><b>Welcome to confirm your eduID account</b><br>
+            Your confirmation code, which expires {{ recipient_validity_period }}, is:
+            <strong>{{ recipient_verification_code }}</strong><br>
+            Please login to https://dashboard.eduid.se with the username and password that you used
+            when creating your account and follow the instructions below:<br>
+            1. Open the tab "Confirm Identity".<br>
+            2. Click on "CONFIRM WITH LETTER" next to your national identity number.<br>
+            3. Enter the confirmation code in the white field of the window that opens.<br>
+            4. Click "OK".<br>
+            <br>
+            If you, on the contrary, have not requested a code from eduID, please report it to support@eduid.se.
+        </p>
         <br>
-        If you, on the contrary, have not requested a code from eduID, please report it to support@eduid.se.
-    </p></div>
+        <ul style="font-size: 12pt">
+            <strong>Vanliga frågor:</strong>
+            <li>Jag har glömt bort vilken e-postadress jag skapade mitt konto med?</li>
+            - Din angivna e-postadress är: {{ recipient_primary_mail_address }}<br>
+            <li>Min kod fungerar inte?</li>
+            - Försöker du använda koden efter dess giltighetstid {{ recipient_validity_period }}?
+        </ul>
+    </div>
 </body>
 </html>
