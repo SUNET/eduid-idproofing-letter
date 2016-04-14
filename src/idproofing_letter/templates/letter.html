@@ -30,7 +30,16 @@
     <div id="recipient_frame">
         <p style="font-size: 10pt">
             {{ recipient_name }}<br>
-            {{ recipient_address }}<br>
+            {% if recipient_care_of %}
+                C/O {{ recipient_care_of }}<br>
+            {% endif %}
+            {% if recipient_misc_address %}
+                {{ recipient_address }} {{ recipient_misc_address }}
+                <br>
+            {% else %}
+                {{ recipient_address }}
+                <br>
+            {% endif %}
             {{ recipient_postal_code }} {{ recipient_city }}<br>
         </p>
     </div>

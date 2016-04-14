@@ -14,15 +14,20 @@ def format_address(recipient):
     """
     try:
         # TODO: Take GivenNameMarking in to account
-        given_name = recipient.get('Name')['GivenName']               # Mandatory
-        middle_name = recipient.get('Name').get('MiddleName', '')     # Optional
-        surname = recipient.get('Name')['Surname']                    # Mandatory
+        given_name = recipient.get('Name')['GivenName']                     # Mandatory
+        middle_name = recipient.get('Name').get('MiddleName', '')           # Optional
+        surname = recipient.get('Name')['Surname']                          # Mandatory
         name = u'{!s} {!s} {!s}'.format(given_name, middle_name, surname)
         # TODO: Take eventual CareOf and Address1(?) in to account
-        address = recipient.get('OfficialAddress')['Address2']        # Mandatory
-        postal_code = recipient.get('OfficialAddress')['PostalCode']  # Mandatory
-        city = recipient.get('OfficialAddress')['City']               # Mandatory
-        return name, address, postal_code, city
+        care_of = recipient.get('OfficialAddress').get('CareOf', '')        # Optional
+        address = recipient.get('OfficialAddress')['Address2']              # Mandatory
+        # From Skatteverket's documentation it is not clear why Address1
+        # is needed. In practice it is rarely used, but when actually
+        # used it has been seen to often contains apartment numbers.
+        misc_address = recipient.get('OfficialAddress').get('Address1', '') # Optional
+        postal_code = recipient.get('OfficialAddress')['PostalCode']        # Mandatory
+        city = recipient.get('OfficialAddress')['City']                     # Mandatory
+        return name, care_of, address, misc_address, postal_code, city
     except (KeyError, TypeError, AttributeError) as e:
         app.logger.error('Postal address formatting failed: {!r}'.format(e))
         raise ApiException(payload={'errors': 'Postal address formatting failed: {!r}'.format(e)}, status_code=500)
@@ -44,7 +49,7 @@ def create_pdf(recipient, verification_code, created_timestamp, primary_mail_add
 
     pisa.showLogging()
 
-    name, address, postal_code, city = format_address(recipient)
+    name, care_of, address, misc_address, postal_code, city = format_address(recipient)
 
     # Calculate the validity period of the verification
     # code that is to be shown in the letter.
@@ -53,7 +58,9 @@ def create_pdf(recipient, verification_code, created_timestamp, primary_mail_add
 
     letter_template = render_template('letter.html',
                                       recipient_name=name,
+                                      recipient_care_of=care_of,
                                       recipient_address=address,
+                                      recipient_misc_address=misc_address,
                                       recipient_postal_code=postal_code,
                                       recipient_city=city,
                                       recipient_verification_code=verification_code,

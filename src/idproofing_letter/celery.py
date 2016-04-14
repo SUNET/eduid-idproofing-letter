@@ -43,15 +43,16 @@ def get_postal_address(nin):
         app.logger.error('Celery task failed: {!r}'.format(e))
         raise e
     return None
-
-# from collections import OrderedDict
-# def get_postal_address(nin):
-#         result = OrderedDict([
-#             (u'Name', OrderedDict([
-#                 (u'GivenNameMarking', u'20'), (u'GivenName', u'Testaren Test'),
-#                 (u'Surname', u'Testsson')])),
-#             (u'OfficialAddress', OrderedDict([(u'Address2', u'\xd6RGATAN 79 LGH 10'),
-#                                               (u'PostalCode', u'12345'),
-#                                               (u'City', u'LANDET')]))
-#         ])
-#         return result
+#    from collections import OrderedDict
+#    def get_postal_address(nin):
+#    result = OrderedDict([
+#                (u'Name', OrderedDict([
+#                    (u'GivenNameMarking', u'20'), (u'GivenName', u'Testaren Test'),
+#                    (u'MiddleName', u'Tester'), (u'Surname', u'Testsson')])),
+#                (u'OfficialAddress', OrderedDict([(u'Address2', u'\xd6RGATAN 79'),
+#                                                  (u'CareOf', u'TESTAREN & TESTSSON'),
+#                                                  (u'Address1', u'LGH 4321'),
+#                                                  (u'PostalCode', u'12345'),
+#                                                  (u'City', u'LANDET')]))
+#    ])
+#    return result

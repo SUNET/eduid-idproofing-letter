@@ -30,14 +30,18 @@ class FormatAddressTest(unittest.TestCase):
                     (u'GivenNameMarking', u'20'), (u'GivenName', u'Testaren Test'),
                     (u'MiddleName', u'Tester'), (u'Surname', u'Testsson')])),
                 (u'OfficialAddress', OrderedDict([(u'Address2', u'\xd6RGATAN 79 LGH 10'),
+                                                  (u'Address1', u'LGH 4321'),
+                                                  (u'CareOf', u'TESTAREN & TESTSSON'),
                                                   (u'PostalCode', u'12345'),
                                                   (u'City', u'LANDET')]))
             ])
         ]
         for response in navet_responses:
-            name, address, postal_code, city = pdf.format_address(response)
+            name, care_of, address, misc_address, postal_code, city = pdf.format_address(response)
             self.assertIsNotNone(name)
+            self.assertIsNotNone(care_of)
             self.assertIsNotNone(address)
+            self.assertIsNotNone(misc_address)
             self.assertIsNotNone(postal_code)
             self.assertIsNotNone(city)
 
