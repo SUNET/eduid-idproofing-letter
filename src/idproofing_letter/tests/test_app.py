@@ -14,7 +14,7 @@ from flask import request
 from eduid_userdb.testing import MongoTestCase
 from eduid_userdb import UserDB
 from eduid_userdb.proofing import LetterProofingStateDB
-from idproofing_letter import app
+from idproofing_letter.app import init_idproofing_letter_app
 from idproofing_letter.schemas import EppnRequestSchema
 from idproofing_letter.authentication import authenticate
 
@@ -39,10 +39,7 @@ class AppTests(MongoTestCase):
         _settings.update({
             'MONGO_URI': self.tmp_db.get_uri(),
             })
-        self.settings.update(_settings)
-        app.config.update(self.settings)
-        app.central_userdb = UserDB(app.config['MONGO_URI'], 'eduid_am')
-        app.proofing_statedb = LetterProofingStateDB(app.config['MONGO_URI'])
+        self.app = init_idproofing_letter_app('testing', _settings)
 
         self.test_user_eppn = 'babba-labba'
         self.test_user_nin = '200001023456'
@@ -56,13 +53,13 @@ class AppTests(MongoTestCase):
         ])
         self._json = 'application/json'
 
-        self.client = app.test_client()
+        self.client = self.app.test_client()
 
     def tearDown(self):
         super(AppTests, self).tearDown()
-        with app.app_context():
-            app.proofing_statedb._drop_whole_collection()
-            app.central_userdb._drop_whole_collection()
+        with self.app.app_context():
+            self.app.proofing_statedb._drop_whole_collection()
+            self.app.central_userdb._drop_whole_collection()
 
     # Helper methods
     def get_state(self, eppn):
@@ -88,7 +85,7 @@ class AppTests(MongoTestCase):
 
     def test_authenticate(self):
         data = {'eppn': self.test_user_eppn}
-        with app.test_request_context('/get-state', method='POST', data=json.dumps(data), content_type=self._json):
+        with self.app.test_request_context('/get-state', method='POST', data=json.dumps(data), content_type=self._json):
             schema, errors = EppnRequestSchema().load(request.get_json())
             if not errors:
                 user = authenticate(schema)
@@ -124,9 +121,9 @@ class AppTests(MongoTestCase):
 
     def test_verify_letter_code(self):
         self.send_letter(self.test_user_eppn, self.test_user_nin)
-        with app.test_request_context():
-            with app.app_context():
-                proofing_state = app.proofing_statedb.get_state_by_eppn(self.test_user_eppn, raise_on_missing=False)
+        with self.app.test_request_context():
+            with self.app.app_context():
+                proofing_state = self.app.proofing_statedb.get_state_by_eppn(self.test_user_eppn, raise_on_missing=False)
         json_data = self.verify_code(self.test_user_eppn, proofing_state.nin.verification_code)
         self.assertTrue(json_data['success'])
         proofing_data = json_data.get('data', None)
@@ -145,9 +142,9 @@ class AppTests(MongoTestCase):
         self.get_state(self.test_user_eppn)
         self.send_letter(self.test_user_eppn, self.test_user_nin)
         self.get_state(self.test_user_eppn)
-        with app.test_request_context():
-            user = app.central_userdb.get_user_by_eppn(self.test_user_eppn, raise_on_missing=True)
-            proofing_state = app.proofing_statedb.get_state_by_eppn(user.eppn, raise_on_missing=False)
+        with self.app.test_request_context():
+            user = self.app.central_userdb.get_user_by_eppn(self.test_user_eppn, raise_on_missing=True)
+            proofing_state = self.app.proofing_statedb.get_state_by_eppn(user.eppn, raise_on_missing=False)
         json_data = self.verify_code(self.test_user_eppn, proofing_state.nin.verification_code)
         self.assertTrue(json_data['success'])
         proofing_data = json_data.get('data', None)
@@ -157,7 +154,7 @@ class AppTests(MongoTestCase):
         self.send_letter(self.test_user_eppn, self.test_user_nin)
         json_data = self.get_state(self.test_user_eppn)
         self.assertIn('letter_sent', json_data)
-        app.config.update({'LETTER_WAIT_TIME_HOURS': -1})
+        self.app.config.update({'LETTER_WAIT_TIME_HOURS': -1})
         json_data = self.get_state(self.test_user_eppn)
         self.assertTrue(json_data['letter_expired'])
         self.assertNotIn('letter_sent', json_data)
@@ -179,9 +176,9 @@ class AppTests(MongoTestCase):
                 'address': self.mock_address
             }
         }
-        with app.app_context():
-            app.proofing_statedb._coll.insert(deprecated_data)
-            state = app.proofing_statedb.get_state_by_user_id('012345678901234567890123', self.test_user_eppn)
+        with self.app.app_context():
+            self.app.proofing_statedb._coll.insert(deprecated_data)
+            state = self.app.proofing_statedb.get_state_by_user_id('012345678901234567890123', self.test_user_eppn)
         self.assertIsNotNone(state)
         state_dict = state.to_dict()
         self.assertItemsEqual(state_dict.keys(), ['_id', 'eduPersonPrincipalName', 'nin', 'proofing_letter',

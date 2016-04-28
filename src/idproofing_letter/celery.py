@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import absolute_import
-
-from idproofing_letter import app
+from flask import current_app
 from eduid_msg.celery import celery
 from eduid_msg.tasks import get_postal_address as _get_postal_address
 
 __author__ = 'lundberg'
 
 
-celery.conf.update(app.config['CELERY_CONFIG'])
+def setup_celery(app):
+    celery.conf.update(app.config['CELERY_CONFIG'])
 
 
 def get_postal_address(nin):
@@ -40,20 +40,7 @@ def get_postal_address(nin):
         if rtask.successful():
             return rtask.get()
     except Exception as e:
-        app.logger.error('Celery task failed: {!r}'.format(e))
+        current_app.logger.error('Celery task failed: {!r}'.format(e))
         raise e
     return None
-#    from collections import OrderedDict
-#    def get_postal_address(nin):
-#    result = OrderedDict([
-#                (u'Name', OrderedDict([
-#                    (u'GivenNameMarking', u'20'), (u'GivenName', u'Testaren Test'),
-#                    (u'MiddleName', u'Tester'), (u'Surname', u'Testsson')])),
-#                (u'OfficialAddress', OrderedDict([(u'Address2', u'\xd6RGATAN 79'),
-#                                                  (u'CareOf', u'TESTAREN & TESTSSON'),
-#                                                  (u'Address1', u'LGH 4321'),
-#                                                  (u'PostalCode', u'12345'),
-#                                                  (u'City', u'LANDET')]))
-#    ])
-#    return result
 
