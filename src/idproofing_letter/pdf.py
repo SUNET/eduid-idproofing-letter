@@ -1,8 +1,12 @@
+from flask import current_app
 from xhtml2pdf import pisa
 from StringIO import StringIO
 from datetime import timedelta
 from eduid_common.api.exceptions import ApiException
-from idproofing_letter import app
+
+
+class FormatException(Exception):
+    pass
 
 
 def format_address(recipient):
@@ -29,8 +33,7 @@ def format_address(recipient):
         city = recipient.get('OfficialAddress')['City']                     # Mandatory
         return name, care_of, address, misc_address, postal_code, city
     except (KeyError, TypeError, AttributeError) as e:
-        app.logger.error('Postal address formatting failed: {!r}'.format(e))
-        raise ApiException(payload={'errors': 'Postal address formatting failed: {!r}'.format(e)}, status_code=500)
+        raise FormatException(e)
 
 
 def create_pdf(recipient, verification_code, created_timestamp, primary_mail_address):
@@ -49,11 +52,15 @@ def create_pdf(recipient, verification_code, created_timestamp, primary_mail_add
 
     pisa.showLogging()
 
-    name, care_of, address, misc_address, postal_code, city = format_address(recipient)
+    try:
+        name, care_of, address, misc_address, postal_code, city = format_address(recipient)
+    except FormatException as e:
+        current_app.logger.error('Postal address formatting failed: {!r}'.format(e))
+        raise ApiException(payload={'errors': 'Postal address formatting failed: {!r}'.format(e)}, status_code=500)
 
     # Calculate the validity period of the verification
     # code that is to be shown in the letter.
-    max_wait = timedelta(hours=app.config['LETTER_WAIT_TIME_HOURS'])
+    max_wait = timedelta(hours=current_app.config['LETTER_WAIT_TIME_HOURS'])
     validity_period = (created_timestamp + max_wait).strftime('%Y-%m-%d')
 
     letter_template = render_template('letter.html',
@@ -67,8 +74,8 @@ def create_pdf(recipient, verification_code, created_timestamp, primary_mail_add
                                       recipient_validity_period=validity_period,
                                       recipient_primary_mail_address=primary_mail_address)
 
-    if app.config.get("EKOPOST_DEBUG_PDF", None):
-        pdf_document = open(app.config.get("EKOPOST_DEBUG_PDF"), "w")
+    if current_app.config.get("EKOPOST_DEBUG_PDF", None):
+        pdf_document = open(current_app.config.get("EKOPOST_DEBUG_PDF"), "w")
         pisa.CreatePDF(StringIO(letter_template), pdf_document)
     else:
         pdf_document = StringIO()

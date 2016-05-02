@@ -5,7 +5,6 @@ from __future__ import absolute_import
 import unittest
 from collections import OrderedDict
 from idproofing_letter import pdf
-from eduid_common.api.exceptions import ApiException
 
 # We need to add Navet responses that we fail to handle
 
@@ -81,4 +80,4 @@ class FormatAddressTest(unittest.TestCase):
         ]
 
         for response in failing_navet_responses:
-            self.assertRaises(ApiException, pdf.format_address, response)
+            self.assertRaises(pdf.FormatException, pdf.format_address, response)
