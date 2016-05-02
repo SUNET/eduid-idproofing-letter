@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 
-version = '0.2.1b0'
+version = '0.2.2b0'
 
 requires = [
     'eduid-msg>=0.10.1b2',

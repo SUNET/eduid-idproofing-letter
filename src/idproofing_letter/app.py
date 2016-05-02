@@ -10,7 +10,7 @@ from eduid_common.api.exceptions import ApiException
 from eduid_userdb import UserDB
 from eduid_userdb.proofing import LetterProofingStateDB
 from idproofing_letter.ekopost import Ekopost
-from idproofing_letter.celery import setup_celery
+from idproofing_letter.celery import init_celery
 
 __author__ = 'lundberg'
 
@@ -47,7 +47,7 @@ def init_idproofing_letter_app(name, config=None):
     app.proofing_statedb = LetterProofingStateDB(app.config['MONGO_URI'])
 
     # Init celery
-    setup_celery(app)
+    init_celery(app)
 
     # Initiate external modules
     app.ekopost = Ekopost(app)
