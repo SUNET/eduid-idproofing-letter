@@ -34,7 +34,6 @@ def get_state(**kwargs):
         # If a proofing state is found continue the flow
         return check_state(proofing_state)
     response = {
-        'endpoint': url_for('idproofing_letter.send_letter', _external=True),
         'expected_fields': schemas.SendLetterRequestSchema().fields.keys()
     }
     return response

@@ -33,7 +33,6 @@ class BaseResponseSchema(Schema):
     class Meta:
         strict = True
 
-    endpoint = fields.Url(required=True)
     expected_fields = fields.List(fields.String, required=True)
 
 

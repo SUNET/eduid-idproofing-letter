@@ -23,7 +23,6 @@ def check_state(state):
     if not state.proofing_letter.is_sent:
         # User needs to accept sending a letter
         ret.update({
-            'endpoint': url_for('idproofing_letter.send_letter', _external=True),
             'expected_fields': SendLetterRequestSchema().fields.keys()  # Do we want expected_fields?
         })
     elif state.proofing_letter.is_sent:
@@ -36,7 +35,6 @@ def check_state(state):
         if time_since_sent < max_wait:
             # The user has to wait for the letter to arrive
             ret.update({
-                'endpoint': url_for('idproofing_letter.verify_code', _external=True),
                 'letter_sent': sent_dt,
                 'letter_expires': sent_dt + max_wait,
                 'expected_fields': VerifyCodeRequestSchema().fields.keys(),  # Do we want expected_fields?
@@ -47,7 +45,6 @@ def check_state(state):
             current_app.proofing_statedb.remove_document({'eduPersonPrincipalName': state.eppn})
             current_app.logger.info('Removed {!s}'.format(state))
             ret.update({
-                'endpoint': url_for('idproofing_letter.send_letter', _external=True),
                 'letter_expired': True,
                 'expected_fields': SendLetterRequestSchema().fields.keys(),  # Do we want expected_fields?
             })
