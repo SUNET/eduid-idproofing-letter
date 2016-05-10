@@ -3,7 +3,6 @@
 from __future__ import absolute_import
 
 from flask import Flask, jsonify
-from flask_apispec.extension import FlaskApiSpec
 from webargs.flaskparser import parser as webargs_flaskparser
 from eduid_common.api.logging import init_logging
 from eduid_common.api.exceptions import ApiException
@@ -67,12 +66,6 @@ def init_idproofing_letter_app(name, config=None):
         response = jsonify(error.to_dict())
         response.status_code = error.status_code
         return response
-
-    if app.config['APISPEC_SPEC']:
-        docs = FlaskApiSpec(app)
-        docs.register(idproofing_letter_views.get_state)
-        docs.register(idproofing_letter_views.send_letter)
-        docs.register(idproofing_letter_views.verify_code)
 
     app.logger.info('Application initialized')
     return app

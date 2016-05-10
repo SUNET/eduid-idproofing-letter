@@ -42,15 +42,3 @@ EKOPOST_API_USER = ''
 EKOPOST_API_PW = ''
 EKOPOST_DEBUG_PDF = ''
 
-
-# Api Spec config - https://github.com/OAI/OpenAPI-Specification
-# from apispec import APISpec
-# APISPEC_SPEC = APISpec(
-#    title = 'eduid-idproofing-letter',
-#    version = 'v1',
-#    plugins = ('apispec.ext.marshmallow',),
-# )
-
-APISPEC_SPEC = None
-APISPEC_SWAGGER_URL = '/swagger/'
-APISPEC_SWAGGER_UI_URL = '/swagger-ui/'
