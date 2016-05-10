@@ -10,7 +10,7 @@ from eduid_common.api.exceptions import ApiException
 from eduid_userdb import UserDB
 from eduid_userdb.proofing import LetterProofingStateDB
 from idproofing_letter.ekopost import Ekopost
-from idproofing_letter.celery import init_celery
+from idproofing_letter.msg import init_celery
 
 __author__ = 'lundberg'
 

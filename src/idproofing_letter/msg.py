@@ -3,14 +3,14 @@
 from __future__ import absolute_import
 
 from flask import current_app
-from eduid_msg.celery import celery
+import eduid_msg.celery
 from eduid_msg.tasks import get_postal_address as _get_postal_address
 
 __author__ = 'lundberg'
 
 
 def init_celery(app):
-    celery.conf.update(app.config['CELERY_CONFIG'])
+    eduid_msg.celery.celery.conf.update(app.config['CELERY_CONFIG'])
 
 
 def get_postal_address(nin):

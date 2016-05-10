@@ -12,7 +12,7 @@ from idproofing_letter import pdf
 from idproofing_letter import schemas
 from idproofing_letter.authentication import authenticate
 from idproofing_letter.proofing import create_proofing_state, check_state
-from idproofing_letter.celery import get_postal_address
+from idproofing_letter.msg import get_postal_address
 
 __author__ = 'lundberg'
 
