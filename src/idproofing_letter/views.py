@@ -46,63 +46,67 @@ def send_letter(**kwargs):
     user = authenticate(kwargs)
     nin = kwargs.get('nin')
     current_app.logger.info('Send letter for user {!r} initiated'.format(user))
+
+    # Look for existing proofing state
     proofing_state = current_app.proofing_statedb.get_state_by_eppn(user.eppn, raise_on_missing=False)
     if not proofing_state:
         # No warning as proofing state can be None
         proofing_state = current_app.proofing_statedb.get_state_by_user_id(user.user_id, user.eppn, raise_on_missing=False)
 
-        current_app.logger.info('Getting address for user {!r}'.format(user))
-        current_app.logger.debug('NIN: {!s}'.format(nin))
-        # Lookup official address via Navet
-        address = get_postal_address(nin)
-        if not address:
-            current_app.logger.error('No address found for user {!r}'.format(user))
-            raise ApiException('No address found', status_code=400)
-        current_app.logger.debug('Official address: {!r}'.format(address))
+    # No existing proofing state was found, create a new one
+    if not proofing_state:
+        # Create a LetterNinProofingUser in proofingdb
+        proofing_state = create_proofing_state(user.eppn, nin)
+        current_app.logger.info('Created proofing state for user {!r}'.format(user))
 
-        if not proofing_state:
-            # Create a LetterNinProofingUser in proofingdb
-            proofing_state = create_proofing_state(user.eppn, nin)
-            current_app.logger.info('Created proofing state for user {!r}'.format(user))
+    current_app.logger.info('Getting address for user {!r}'.format(user))
+    current_app.logger.debug('NIN: {!s}'.format(nin))
+    # Lookup official address via Navet
+    address = get_postal_address(nin)
+    if not address:
+        current_app.logger.error('No address found for user {!r}'.format(user))
+        raise ApiException('No address found', status_code=400)
+    current_app.logger.debug('Official address: {!r}'.format(address))
 
-        if proofing_state.proofing_letter.is_sent:
-            current_app.logger.info('User {!r} has already sent a letter'.format(user))
-            return check_state(proofing_state)
+    if proofing_state.proofing_letter.is_sent:
+        current_app.logger.info('User {!r} has already sent a letter'.format(user))
+        return check_state(proofing_state)
 
-        # Check that user is not trying to register another NIN
-        if not proofing_state.nin.number == nin:
-            current_app.logger.error('NIN mismatch for user {!r}'.format(user))
-            current_app.logger.error('Old NIN: {!s}'.format(proofing_state.nin.number))
-            current_app.logger.error('New NIN: {!s}'.format(nin))
-            raise ApiException('NIN mismatch', status_code=400)
+    # Check that user is not trying to register another NIN
+    if not proofing_state.nin.number == nin:
+        current_app.logger.error('NIN mismatch for user {!r}'.format(user))
+        current_app.logger.error('Old NIN: {!s}'.format(proofing_state.nin.number))
+        current_app.logger.error('New NIN: {!s}'.format(nin))
+        raise ApiException('NIN mismatch', status_code=400)
 
-        # Set or update official address
-        proofing_state.proofing_letter.address = address
-        current_app.proofing_statedb.save(proofing_state)
+    # Set or update official address
+    proofing_state.proofing_letter.address = address
+    current_app.proofing_statedb.save(proofing_state)
 
-        # User accepted a letter to their official address and data saved in db checks out
-        # and therefore we can now create the letter as a PDF-document and send it.
-        if current_app.config.get("EKOPOST_DEBUG_PDF", None):
-            pdf.create_pdf(proofing_state.proofing_letter.address,
-                           proofing_state.nin.verification_code,
-                           proofing_state.nin.created_ts,
-                           user.mail_addresses.primary.email)
-            campaign_id = 'debug mode transaction id'
-        else:
-            pdf_letter = pdf.create_pdf(proofing_state.proofing_letter.address,
-                                        proofing_state.nin.verification_code,
-                                        proofing_state.nin.created_ts,
-                                        user.mail_addresses.primary.email)
-            try:
-                campaign_id = current_app.ekopost.send(user.eppn, pdf_letter)
-            except ApiException as api_exception:
-                current_app.logger.error('ApiException {!r}'.format(api_exception.message))
-                raise api_exception
+    # User accepted a letter to their official address and data saved in db checks out
+    # and therefore we can now create the letter as a PDF-document and send it.
+    if current_app.config.get("EKOPOST_DEBUG_PDF", None):
+        pdf.create_pdf(proofing_state.proofing_letter.address,
+                       proofing_state.nin.verification_code,
+                       proofing_state.nin.created_ts,
+                       user.mail_addresses.primary.email)
+        campaign_id = 'debug mode transaction id'
+    else:
+        pdf_letter = pdf.create_pdf(proofing_state.proofing_letter.address,
+                                    proofing_state.nin.verification_code,
+                                    proofing_state.nin.created_ts,
+                                    user.mail_addresses.primary.email)
+        try:
+            campaign_id = current_app.ekopost.send(user.eppn, pdf_letter)
+        except ApiException as api_exception:
+            current_app.logger.error('ApiException {!r}'.format(api_exception.message))
+            raise api_exception
 
-        proofing_state.proofing_letter.transaction_id = campaign_id
-        proofing_state.proofing_letter.is_sent = True
-        proofing_state.proofing_letter.sent_ts = True
-        current_app.proofing_statedb.save(proofing_state)
+    # Save the users proofing state
+    proofing_state.proofing_letter.transaction_id = campaign_id
+    proofing_state.proofing_letter.is_sent = True
+    proofing_state.proofing_letter.sent_ts = True
+    current_app.proofing_statedb.save(proofing_state)
     return check_state(proofing_state)
 
 
