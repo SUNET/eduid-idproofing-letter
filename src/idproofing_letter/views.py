@@ -2,7 +2,7 @@
 
 from __future__ import absolute_import
 
-from flask import Blueprint, current_app, url_for
+from flask import Blueprint, current_app
 from flask_apispec import use_kwargs, marshal_with
 import json
 

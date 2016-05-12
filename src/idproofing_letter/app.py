@@ -5,7 +5,7 @@ from __future__ import absolute_import
 from flask import Flask, jsonify
 from webargs.flaskparser import parser as webargs_flaskparser
 from eduid_common.api.logging import init_logging
-from eduid_common.api.exceptions import ApiException
+from eduid_common.api.exceptions import init_exception_handlers
 from eduid_userdb import UserDB
 from eduid_userdb.proofing import LetterProofingStateDB
 from idproofing_letter.ekopost import Ekopost
@@ -34,8 +34,11 @@ def init_idproofing_letter_app(name, config=None):
     if config:
         app.config.update(config)
 
-    # Set up logging
-    init_logging(app)
+    # Setup logging
+    app = init_logging(app)
+
+    # Setup exception handling
+    app = init_exception_handlers(app)
 
     # Register views
     from idproofing_letter.views import idproofing_letter_views
@@ -54,18 +57,6 @@ def init_idproofing_letter_app(name, config=None):
     # Check for secret key
     if app.config['SECRET_KEY'] is None:
         app.logger.error('Missing SECRET_KEY in the settings file')
-
-    @webargs_flaskparser.error_handler
-    def handle_webargs_exception(error):
-        app.logger.error('ApiException {!r}'.format(error))
-        raise (ApiException(error.messages, error.status_code))
-
-    @app.errorhandler(ApiException)
-    def handle_flask_exception(error):
-        app.logger.error('ApiException {!r}'.format(error))
-        response = jsonify(error.to_dict())
-        response.status_code = error.status_code
-        return response
 
     app.logger.info('Application initialized')
     return app

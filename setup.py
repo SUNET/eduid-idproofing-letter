@@ -1,12 +1,12 @@
 from setuptools import setup, find_packages
 
 
-version = '0.2.2b1'
+version = '0.2.2b2'
 
 requires = [
     'eduid-msg>=0.10.1b2',
     'eduid-userdb>=0.1.0b0',
-    'eduid-common>=0.2.0b0',
+    'eduid-common>=0.2.1b5',
     'Flask==0.10.1',
     'flask-apispec>=0.3.2',
     'gunicorn==19.4.1',

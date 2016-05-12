@@ -96,7 +96,7 @@ class AppTests(MongoTestCase):
         response = self.client.post('/get-state', data=json.dumps(data), content_type=self._json)
         self.assertEqual(response.status_code, 422)
         response_data = json.loads(response.data)
-        self.assertIn('eppn', response_data['message'])
+        self.assertIn('eppn', response_data)
 
     def test_letter_not_sent_status(self):
         json_data = self.get_state(self.test_user_eppn)
