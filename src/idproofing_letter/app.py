@@ -2,8 +2,7 @@
 
 from __future__ import absolute_import
 
-from flask import Flask, jsonify
-from webargs.flaskparser import parser as webargs_flaskparser
+from flask import Flask
 from eduid_common.api.logging import init_logging
 from eduid_common.api.exceptions import init_exception_handlers
 from eduid_userdb import UserDB

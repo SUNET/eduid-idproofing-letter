@@ -1,6 +1,9 @@
 Flask>=0.10.1
 Pillow>=3.0.0
-xhtml2pdf>=0.0.6
+xhtml2pdf==0.1b3
 eduid-msg>=0.10.0
 eduid-userdb>=0.1.0b0
-eduid-common>=0.2.1b5
+eduid-common==0.2.1b5
+kombu<4
+marshmallow==2.13.5
+flask-apispec==0.4.0
